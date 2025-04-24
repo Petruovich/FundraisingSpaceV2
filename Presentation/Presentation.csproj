@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+	<ItemGroup>
+		<None Update="E:\Users\bogac\Desktop\Urb.Plan.v2\Urb.Persistance\Migrations\">
+			<Generator>MSBuild:UpdateGeneratedFiles</Generator>
+			<LastGenOutput>E:\Users\bogac\Desktop\Urb.Plan.v2\Urb.Persistance\Migrations\</LastGenOutput>
+		</None>
+	</ItemGroup>
+
+</Project>
