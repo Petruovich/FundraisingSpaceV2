@@ -6,7 +6,8 @@ using System.Threading.Tasks;
 
 namespace Urb.Infrastructure.Fun.Services
 {
-    internal class InitiativeService
+    public class InitiativeService
     {
+
     }
 }

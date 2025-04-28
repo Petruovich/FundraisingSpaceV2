@@ -4,10 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Urb.Infrastructure.Fun.Services
+namespace Fun.Infrastructure.Fun.Services
 {
-    public class UserService
+    internal class TokenService
     {
-
     }
 }

@@ -15,7 +15,6 @@ namespace Urb.Domain.Urb.Models
             public Guid Id { get; set; }
             public string Email { get; set; }
             public string PasswordHash { get; set; }
-
             public ICollection<Initiative> CreatedInitiatives { get; set; }
             public ICollection<Donate> Donations { get; set; }       
     }

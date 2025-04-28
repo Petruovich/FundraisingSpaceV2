@@ -11,4 +11,6 @@ namespace Urb.Plan.v2.Controllers
     [ApiController]
     public class UserController : ControllerBase
     {
+       
+    }
 }

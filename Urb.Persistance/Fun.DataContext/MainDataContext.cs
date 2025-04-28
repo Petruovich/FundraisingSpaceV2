@@ -16,7 +16,7 @@ public class AppDbContext : DbContext
         base.OnModelCreating(modelBuilder);
 
         modelBuilder.Entity<User>()
-            .HasMany(u => u.Initiatives)
+            .HasMany(u => u.CreatedInitiatives)
             .WithOne(i => i.User)
             .HasForeignKey(i => i.UserId);
 

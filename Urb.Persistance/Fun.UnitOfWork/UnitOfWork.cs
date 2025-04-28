@@ -1,4 +1,8 @@
-﻿public class UnitOfWork : IUnitOfWork
+﻿using Fun.Application.Fun.IRepositories;
+using Urb.Application.Urb.IRepositories;
+using Urb.Application.Urb.IUnitOfWork;
+
+public class UnitOfWork : IUnitOfWOrk
 {
     private readonly AppDbContext _context;
 
@@ -22,4 +26,19 @@
 
     public Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
         => _context.SaveChangesAsync(cancellationToken);
+    public void BeginTransaction()
+    {
+        _context.Database.BeginTransaction();
+    }
+
+    public int Commit()
+    {
+        _context.Database.CommitTransaction();
+        return 1;
+    }
+
+    public void Rollback()
+    {
+        _context.Database.RollbackTransaction();
+    }
 }
