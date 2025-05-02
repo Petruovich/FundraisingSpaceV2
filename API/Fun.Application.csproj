@@ -30,9 +30,4 @@
     <ProjectReference Include="..\Urb.Domain\Fun.Domain.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="ComponentModels\" />
-    <Folder Include="IComponentModels\" />
-  </ItemGroup>
-
 </Project>

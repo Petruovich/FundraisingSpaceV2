@@ -1,10 +1,11 @@
 ﻿using Fun.Domain.Fun.Models;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Urb.Domain.Urb.Models;
 
-public class AppDbContext : DbContext
+public class MainDataContext : IdentityDbContext
 {
-    public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
+    public MainDataContext(DbContextOptions<MainDataContext> options) : base(options) { }
 
     public DbSet<User> Users => Set<User>();
     public DbSet<Initiative> Initiatives => Set<Initiative>();

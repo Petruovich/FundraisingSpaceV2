@@ -4,12 +4,13 @@ using Microsoft.OpenApi.Models;
 using Urb.Plan.v2.Mapper;
 using Urb.Application.App.Settings;
 using Urb.Domain.Urb.Models;
+using Microsoft.Extensions.DependencyInjection;
 
 var builder = WebApplication.CreateBuilder(args);
 
 ConfigurationManager configuration = builder.Configuration;
-builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlServer(configuration.GetConnectionString("SqlConnection")));
-builder.Services.AddIdentityCore<User/*IdentityUser*//*, IdentityRole*/>(options =>
+builder.Services.AddDbContext<MainDataContext>(options => options.UseSqlServer(configuration.GetConnectionString("SqlConnection")));
+builder.Services.AddIdentity<User, IdentityRole>(options =>
     {
         options.User.AllowedUserNameCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-.";
         options.Password.RequireUppercase = true;
@@ -17,12 +18,10 @@ builder.Services.AddIdentityCore<User/*IdentityUser*//*, IdentityRole*/>(options
         options.Password.RequiredLength = 6;     
         options.User.RequireUniqueEmail = true;
     })
-    
-
-    .AddSignInManager<SignInManager<User>>()
-    .AddDefaultTokenProviders();
+.AddSignInManager<SignInManager<User>>()
+.AddDefaultTokenProviders();
 builder.Services.AddControllersWithViews()
-    .AddNewtonsoftJson(options => options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore); 
+.AddNewtonsoftJson(options => options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore); 
 builder.Services.AddControllers();
 builder.Services.AddRazorPages();
 builder.Services.AddSwaggerGen(c =>
@@ -30,21 +29,19 @@ builder.Services.AddSwaggerGen(c =>
     c.SwaggerDoc("v2", new OpenApiInfo { Title = "MVCCallWebAPI", Version = "v2" });
 });
 builder.Services.AddAutoMapper(typeof(AutoMapperProfile));
-builder.Configuration.AddJsonFile("appsettings.json");
+builder.Configuration.AddJsonFile("appsettings.jsoon");
 builder.Services.Configure<AppSettings>(builder.Configuration.GetSection("AppSettings"));
 builder.Services.AddCors(options =>
 {
     options.AddPolicy(name: "Pinus",
-                      builder =>
-                      {
-                          builder.WithOrigins("https://red-pebble-049af5603.4.azurestaticapps.net/",
-                              "http://localhost:5173/")
-                                 .AllowAnyHeader()
-                                 .AllowAnyMethod();
-                      });
+    builder =>
+    {
+    builder.WithOrigins("https://red-pebble-049af5603.4.azurestaticapps.net/",
+    "http://localhost:5173/")
+    .AllowAnyHeader()
+    .AllowAnyMethod();
+    });
 });
-
-
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "Urb.API", Version = "Test" });
@@ -70,10 +67,7 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
-
 var app = builder.Build();
-
-// Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
     {
         app.UseExceptionHandler("/Error");
@@ -84,13 +78,10 @@ app.UseSwaggerUI(c =>
     c.SwaggerEndpoint("/swagger/v2/swagger.json", "MVCCallWebAPI");
 });
 app.UseStaticFiles();
-
-    app.UseRouting();
-    app.UseAuthentication();
-    app.UseAuthorization();
-
-    app.MapControllers();
-
-    app.Run();
+app.UseRouting();
+app.UseAuthentication();
+app.UseAuthorization();
+app.MapControllers();
+app.Run();
 
 

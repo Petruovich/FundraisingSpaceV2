@@ -13,6 +13,5 @@ namespace Urb.Plan.v2.Urb.Middlewares
             _service = service;
             _requestDelegate = requestDelegate;
         }
-
     }
 }
