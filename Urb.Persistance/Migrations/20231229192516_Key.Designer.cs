@@ -5,13 +5,13 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using Urb.Persistance.Urb.DataConext;
+
 
 #nullable disable
 
 namespace Urb.Persistance.Migrations
 {
-    [DbContext(typeof(UserTokenDataContext))]
+    [DbContext(typeof(MainDataContext))]
     [Migration("20231229192516_Key")]
     partial class Key
     {

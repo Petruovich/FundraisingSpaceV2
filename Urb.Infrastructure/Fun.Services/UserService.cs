@@ -99,10 +99,8 @@ namespace Urb.Infrastructure.Fun.Services
         {
             var userEmail = _httpContextAccessor.HttpContext?.User.FindFirstValue(ClaimTypes.Email);
             var result = await _userManager.FindByEmailAsync(userEmail);
-
             var id = result.Id;
             return id;
-
         }        
     }
 }

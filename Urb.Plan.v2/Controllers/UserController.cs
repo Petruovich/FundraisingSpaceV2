@@ -3,6 +3,7 @@ using AutoMapper;
 using Fun.Application.ComponentModels;
 using Fun.Application.Fun.IServices;
 using Fun.Application.IComponentModels;
+using Fun.Application.IControllers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -18,7 +19,7 @@ namespace Urb.Plan.v2.Controllers
     [Route("api/[controller]")]
     [AllowAnonymous]
     [ApiController]
-    public class UserController : ControllerBase
+    public class UserController : ControllerBase, IUserController
     {
         private IUserService _userService;
         private ITokenService _jwtService;
@@ -73,7 +74,7 @@ namespace Urb.Plan.v2.Controllers
             }
 
             return BadRequest("Unknown error occurred.");
-
+        }
 
             [AllowAnonymous]
             [HttpPost("authenticate")]
@@ -118,4 +119,4 @@ namespace Urb.Plan.v2.Controllers
                 }
             }
         }
-    } }
+    } 

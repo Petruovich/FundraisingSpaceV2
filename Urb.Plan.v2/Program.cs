@@ -18,6 +18,7 @@ builder.Services.AddIdentity<User, IdentityRole>(options =>
         options.Password.RequiredLength = 6;     
         options.User.RequireUniqueEmail = true;
     })
+.AddEntityFrameworkStores<MainDataContext>()
 .AddSignInManager<SignInManager<User>>()
 .AddDefaultTokenProviders();
 builder.Services.AddControllersWithViews()
@@ -29,7 +30,7 @@ builder.Services.AddSwaggerGen(c =>
     c.SwaggerDoc("v2", new OpenApiInfo { Title = "MVCCallWebAPI", Version = "v2" });
 });
 builder.Services.AddAutoMapper(typeof(AutoMapperProfile));
-builder.Configuration.AddJsonFile("appsettings.jsoon");
+builder.Configuration.AddJsonFile("appsettings.json");
 builder.Services.Configure<AppSettings>(builder.Configuration.GetSection("AppSettings"));
 builder.Services.AddCors(options =>
 {

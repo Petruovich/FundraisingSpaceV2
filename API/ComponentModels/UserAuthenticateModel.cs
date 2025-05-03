@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Fun.Application.IComponentModels;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -7,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Fun.Application.ComponentModels
 {
-    public class UserAuthenticateModel
+    public class UserAuthenticateModel: IUserAuthenticateModel
     {
         [Required]
         public string Email { get; set; }

@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Urb.Domain.Urb.Models;
 
-public class MainDataContext : IdentityDbContext
+public class MainDataContext : IdentityDbContext<User>
 {
     public MainDataContext(DbContextOptions<MainDataContext> options) : base(options) { }
 
