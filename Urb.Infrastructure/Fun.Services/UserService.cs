@@ -2,10 +2,13 @@
 using Fun.Application.ComponentModels;
 using Fun.Application.Fun.IServices;
 using Fun.Application.IComponentModels;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -24,13 +27,18 @@ namespace Urb.Infrastructure.Fun.Services
         private MainDataContext _context;
         private ITokenService _jwtService;
         private readonly IMapper _mapper;
+        private readonly IConfiguration _configuration;
+        private readonly string _redirectUri;
+
         public UserService(
             IHttpContextAccessor httpContextAccessor,
             MainDataContext context,
             ITokenService jWTService,
             IMapper autoMapperProfile,
             SignInManager<User> signInManager,
+            IConfiguration configuration,
             UserManager<User> userManager
+
             )
         {
             _httpContextAccessor = httpContextAccessor;
@@ -39,6 +47,9 @@ namespace Urb.Infrastructure.Fun.Services
             _mapper = autoMapperProfile;
             _userManager = userManager;
             _signInManager = signInManager;
+            _configuration = configuration;
+            _redirectUri = _configuration["AppSettings:ClientUrl"]
+                         + "/api/account/externalLogincallback";
         }
         public IActionResult Ok(User user)
         {
@@ -101,6 +112,38 @@ namespace Urb.Infrastructure.Fun.Services
             var result = await _userManager.FindByEmailAsync(userEmail);
             var id = result.Id;
             return id;
-        }        
+        }
+
+        public AuthenticationProperties GetAuthenticationProperties(string returnUrl)
+        {
+            var properties = _signInManager.ConfigureExternalAuthenticationProperties(
+                GoogleDefaults.AuthenticationScheme,
+                $"{_redirectUri}?returnUrl={Uri.EscapeDataString(returnUrl)}");
+            return properties;
+        }
+
+        public async Task<User> HandleCallbackAsync()
+        {
+            var info = await _signInManager.GetExternalLoginInfoAsync();
+            if (info == null)
+                throw new InvalidOperationException("Cannot load external login information.");
+            var result = await _signInManager.ExternalLoginSignInAsync(
+                info.LoginProvider, info.ProviderKey, isPersistent: false);
+
+            User user;
+            if (result.Succeeded)
+            {
+                user = await _userManager.FindByLoginAsync(
+                    info.LoginProvider, info.ProviderKey);
+            }
+            else
+            {
+                var email = info.Principal.FindFirstValue(ClaimTypes.Email);
+                user = new User { UserName = email, Email = email };
+                await _userManager.CreateAsync(user);
+                await _userManager.AddLoginAsync(user, info);
+            }
+            return user;
+        }
     }
 }
