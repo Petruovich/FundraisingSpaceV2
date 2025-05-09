@@ -7,6 +7,9 @@ using Urb.Domain.Urb.Models;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.Google;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -29,19 +32,49 @@ builder.Services.AddControllers();
 builder.Services.AddRazorPages();
 builder.Services.AddAuthentication(options =>
 {
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
     options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
     options.DefaultChallengeScheme = GoogleDefaults.AuthenticationScheme;
 })
-.AddCookie()
-.AddGoogle(googleOptions =>
-{
-    var googleAuth = configuration.GetSection("Authentication:Google");
-    googleOptions.ClientId = googleAuth["ClientId"];
-    googleOptions.ClientSecret = googleAuth["ClientSecret"];
-    googleOptions.SaveTokens = true;          
-    googleOptions.Scope.Add("email");
-    googleOptions.Scope.Add("profile");
-});
+    .AddCookie()
+    .AddGoogle(googleOptions =>
+    {
+        var g = configuration.GetSection("Authentication:Google");
+        googleOptions.ClientId = g["ClientId"];
+        googleOptions.ClientSecret = g["ClientSecret"];
+        googleOptions.SaveTokens = true;
+        googleOptions.Scope.Add("email");
+        googleOptions.Scope.Add("profile");
+    })
+    .AddJwtBearer(jwt =>
+    {
+        var jwtKey = configuration["AppSettings:JWTkey"];
+        jwt.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(
+                                          Encoding.UTF8.GetBytes(jwtKey)),
+            ValidateIssuer = false,
+            ValidateAudience = false,
+            ValidateLifetime = true,
+            ClockSkew = TimeSpan.Zero
+        };
+    });
+//builder.Services.AddAuthentication(options =>
+//{
+//    options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+//    options.DefaultChallengeScheme = GoogleDefaults.AuthenticationScheme;
+//})
+//.AddCookie()
+//.AddGoogle(googleOptions =>
+//{
+//    var googleAuth = configuration.GetSection("Authentication:Google");
+//    googleOptions.ClientId = googleAuth["ClientId"];
+//    googleOptions.ClientSecret = googleAuth["ClientSecret"];
+//    googleOptions.SaveTokens = true;          
+//    googleOptions.Scope.Add("email");
+//    googleOptions.Scope.Add("profile");
+//});
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v2", new OpenApiInfo { Title = "MVCCallWebAPI", Version = "v2" });

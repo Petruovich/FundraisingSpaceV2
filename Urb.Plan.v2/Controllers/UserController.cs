@@ -121,9 +121,10 @@ namespace Urb.Plan.v2.Controllers
                     return NotFound("Email not found in claims.");
                 }
             }
+
             [HttpGet]
             public IActionResult ExternalLogin(string returnUrl = "/")
-        {
+            {
             var props = _userService.GetAuthenticationProperties(returnUrl);
             
             return Challenge(props, GoogleDefaults.AuthenticationScheme);
