@@ -36,4 +36,8 @@
     <ProjectReference Include="..\Urb.Persistance\Fun.Persistance.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="wwwroot\images\initiatives\" />
+  </ItemGroup>
+
 </Project>

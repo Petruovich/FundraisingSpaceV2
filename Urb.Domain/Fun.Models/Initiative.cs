@@ -16,5 +16,8 @@ namespace Fun.Domain.Fun.Models
         public int UserId { get; set; }
         public User User { get; set; } = null!;
         public ICollection<Fundraising> Fundraisings { get; set; } = new List<Fundraising>();
+        public string ImageUrl { get; set; }
+        public ICollection<Subscribe> Subscribes { get; set; }
+        public InitiativeStat Stat { get; set; }
     }
 }

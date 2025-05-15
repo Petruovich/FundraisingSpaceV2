@@ -7,7 +7,7 @@ using Urb.Domain.Urb.Models;
 
 namespace Fun.Domain.Fun.Models
 {
-    public class Subscribes
+    public class Subscribe
     {
         public int Id { get; set; }
         public int UserId { get; set; }

@@ -1,6 +1,7 @@
 ﻿using Fun.Application.Fun.IRepositories;
 using Fun.Application.Fun.IServices;
 using Fun.Domain.Fun.Models;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using System;
 using System.Collections.Generic;
@@ -15,11 +16,14 @@ namespace Urb.Infrastructure.Fun.Services
     {
         private readonly ICRUDRepository<Initiative> _repo;
         private readonly IHttpContextAccessor _httpCtx;
+        private readonly IWebHostEnvironment _env;
 
         public InitiativeService(
             ICRUDRepository<Initiative> repo,
-            IHttpContextAccessor httpCtx)
+            IHttpContextAccessor httpCtx,
+            IWebHostEnvironment env)
         {
+            _env = env;
             _repo = repo;
             _httpCtx = httpCtx;
         }
@@ -63,6 +67,21 @@ namespace Urb.Infrastructure.Fun.Services
                 throw new UnauthorizedAccessException();
 
             await _repo.Delete(id);
+        }
+        public async Task<string> SaveImageAsync(IFormFile file)
+        {
+            var fileName = Path.GetFileNameWithoutExtension(file.FileName);
+            var fileType = Path.GetExtension(file.FileName);
+            var uniqueFilename = $"{fileName}_{Guid.NewGuid()}{fileType}";
+
+            var structPath = Path.Combine("images", "initiatives", uniqueFilename);
+            var finalPath = Path.Combine(_env.WebRootPath, structPath);
+
+            using var stream = (new FileStream(finalPath, FileMode.Create));
+            {
+                await file.CopyToAsync(stream);
+            }
+            return "/" + finalPath.Replace("\\", "/");
         }
     }
 }
