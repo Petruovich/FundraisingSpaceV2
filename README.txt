@@ -21,5 +21,3 @@ Notes
 PS C:\-\Fundrasing-master\Urb.Plan.v2> dotnet user-secrets set "Authentication:Google:ClientId" "<----Id---->"
 
 PS C:\-\Fundrasing-master\Urb.Plan.v2> dotnet user-secrets set "Authentication:Google:ClientSecret" "<----Secret---->"
-
-PS C:\Users\bogac\OneDrive\Desktop\Fundrasing-master\Urb.Plan.v2>
