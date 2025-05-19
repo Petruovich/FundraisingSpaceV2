@@ -15,3 +15,9 @@ Notes
 --project — the project where migrations are stored (Persistance)
 --startup-project — the project that runs the application (API)
 --context — the DbContext name (MainDataContext)
+
+
+4. Set User-Secrets
+PS C:\-\Fundrasing-master\Urb.Plan.v2> dotnet user-secrets set "Authentication:Google:ClientId" "<----Id---->"
+
+PS C:\-\Fundrasing-master\Urb.Plan.v2> dotnet user-secrets set "Authentication:Google:ClientSecret" "<----Secret---->"
