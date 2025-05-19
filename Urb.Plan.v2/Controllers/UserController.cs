@@ -26,31 +26,25 @@ namespace Urb.Plan.v2.Controllers
         private ITokenService _jwtService;
         private IMapper _mapper;
         private AppSettings _appSettings;
-        private User _user;
         private readonly IHttpContextAccessor _httpContextAccessor;
-        //private readonly IGoogleAuthService _googleAuthService;
         public UserController(
-           User user,
             IUserService userService,
             IMapper mapper,
             IOptions<AppSettings> appSettings,
             IHttpContextAccessor httpContextAccessor,
-            ITokenService jwtService
-            //IGoogleAuthService googleAuthService)
+            ITokenService jwtService)
         {
             _jwtService = jwtService;
-            _user = user;
             _userService = userService;
             _mapper = mapper;
             _appSettings = appSettings.Value;
-            _httpContextAccessor = httpContextAccessor;            //_googleAuthService = googleAuthService;
+            _httpContextAccessor = httpContextAccessor;
         }
-
 
         [Route("Register")]
         [AllowAnonymous]
         [HttpPost]
-        public async Task<object> Register(UserRegisterModel userRegisterModel)
+        public async Task<object> Register([FromBody] UserRegisterModel userRegisterModel)
         {
             var result = await _userService.Register(userRegisterModel);
             if (result is IdentityResult identityResult)
@@ -106,7 +100,7 @@ namespace Urb.Plan.v2.Controllers
                 return user;
             }
 
-            [HttpGet]
+            [HttpGet("GetUser")]
             [Authorize]
             public IActionResult Get()
             {
@@ -122,22 +116,27 @@ namespace Urb.Plan.v2.Controllers
                 }
             }
 
-            [HttpGet]
-            public IActionResult ExternalLogin(string returnUrl = "/")
-            {
+        [HttpGet("ExternalLog")]
+        public IActionResult ExternalLogin(string returnUrl = "/")
+        {
             var props = _userService.GetAuthenticationProperties(returnUrl);
-            
+
             return Challenge(props, GoogleDefaults.AuthenticationScheme);
-            }
+        }
 
-            [HttpGet]
-            public async Task<IActionResult> ExternalLoginCallback(string returnUrl = "/")
+
+        [HttpGet("ExternalLoginCallback")]
+        public async Task<IActionResult> ExternalLoginCallback(string returnUrl = "/")
+        {
+            User domainUser = await _userService.HandleCallbackAsync();
+
+            var authModel = new UserAuthenticateModel
             {
-                var user = await _userService.HandleCallbackAsync();
-
-                var jwt = _jwtService.GenerateToken(user);
-
-                return Ok(new { token = jwt, returnUrl });
-            }
+                Email = domainUser.Email,
+                Password = null   
+            };
+            string jwt = _jwtService.GenerateToken(authModel);
+            return Ok(new { token = jwt, returnUrl });
+        }
     }
 } 

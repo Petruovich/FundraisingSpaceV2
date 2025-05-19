@@ -14,6 +14,6 @@ namespace Fun.Domain.Fun.Models
         public decimal TotalCollected { get; set; }
         public decimal Goal { get; set; }
         public DateTime UpdatedAt { get; set; }
-        public ICollection<FaundraisingDailyIncome> DailyIncomes { get; set; }
+        public ICollection<FundraisingDailyIncome> DailyIncomes { get; set; }
     }
 }

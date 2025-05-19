@@ -10,7 +10,8 @@ namespace Fun.Application.Fun.IRepositories
     {
         Task<T> Create(T entity);
         Task<T> Put(T entity);        
-        Task Delete(string id);
-        Task<T?> GetByIdAsync(string id);
+        Task Delete(int id);
+        Task<T?> GetByIdAsync(int id);
+        Task<IEnumerable<T>> ListAsync();
     }
 }

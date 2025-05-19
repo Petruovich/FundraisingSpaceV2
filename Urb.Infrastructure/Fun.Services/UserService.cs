@@ -19,7 +19,7 @@ using Urb.Domain.Urb.Models;
 
 namespace Urb.Infrastructure.Fun.Services
 {
-    public class UserService
+    public class UserService: IUserService
     {
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly UserManager<User> _userManager;
@@ -29,6 +29,7 @@ namespace Urb.Infrastructure.Fun.Services
         private readonly IMapper _mapper;
         private readonly IConfiguration _configuration;
         private readonly string _redirectUri;
+        //private readonly IUserAuthenticateModel _userAuthenticateModel;
 
         public UserService(
             IHttpContextAccessor httpContextAccessor,
@@ -37,12 +38,14 @@ namespace Urb.Infrastructure.Fun.Services
             IMapper autoMapperProfile,
             SignInManager<User> signInManager,
             IConfiguration configuration,
+           // IUserAuthenticateModel userAuthenticateModel,
             UserManager<User> userManager
 
             )
         {
             _httpContextAccessor = httpContextAccessor;
             _context = context;
+            //_userAuthenticateModel = userAuthenticateModel;
             _jwtService = jWTService;
             _mapper = autoMapperProfile;
             _userManager = userManager;
@@ -106,7 +109,7 @@ namespace Urb.Infrastructure.Fun.Services
             return new BadRequestObjectResult(new { Message = "Wrong password" });
         }
         [Authorize]
-        public async Task<string> GetMy()
+        public async Task<int> GetMy()
         {
             var userEmail = _httpContextAccessor.HttpContext?.User.FindFirstValue(ClaimTypes.Email);
             var result = await _userManager.FindByEmailAsync(userEmail);

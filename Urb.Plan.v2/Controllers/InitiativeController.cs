@@ -1,4 +1,6 @@
-﻿using Fun.Application.Fun.IServices;
+﻿using Fun.Application.ComponentModels;
+using Fun.Application.Fun.IServices;
+using Fun.Application.IComponentModels;
 using Fun.Domain.Fun.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -12,6 +14,10 @@ namespace Fun.Plan.v2.Controllers
     {
         private readonly IInitiativeService _svc;
         //public InitiativesController(IInitiativeService svc) => _svc = svc;
+        public InitiativeController(IInitiativeService svc)
+        {
+            _svc = svc ?? throw new ArgumentNullException(nameof(svc));
+        }
 
         [HttpGet]
         public async Task<IActionResult> GetAll()
@@ -23,12 +29,14 @@ namespace Fun.Plan.v2.Controllers
             var init = await _svc.GetByIdAsync(id);
             return init == null ? NotFound() : Ok(init);
         }
-
+        [Authorize]
+        [Route("AddInitiative")]
+        [Consumes("multipart/form-data")]
         [HttpPost]
-        public async Task<IActionResult> Create([FromBody] Initiative dto)
+        public async Task</*IActionResult*/object> Create([FromForm] InitiativeComponentModel initiativeComponentModel)
         {
-            var created = await _svc.CreateAsync(dto);
-            return CreatedAtAction(nameof(Get), new { id = created.Id }, created);
+            var created = await _svc.CreateAsync(initiativeComponentModel);
+            return created;/*CreatedAtAction(nameof(Get), new { id = created.Id }, created);*/
         }
 
         [HttpPut("{id}")]
@@ -57,6 +65,27 @@ namespace Fun.Plan.v2.Controllers
             catch (UnauthorizedAccessException)
             {
                 return Forbid();
+            }
+        }
+
+        [HttpGet("byCategory/{categoryId:int}")]
+        public async Task<ActionResult<IEnumerable<Initiative>>> GetByCategory(int categoryId)
+        {
+            var items = await _svc.GetByCategoryAsync(categoryId);
+            return Ok(items);
+        }
+
+        [HttpGet("{id}/statistics")]
+        public async Task<ActionResult<InitiativeStatisticsDto>> GetStatistics(int id)
+        {
+            try
+            {
+                var stats = await _srv.GetStatisticsAsync(id);
+                return Ok(stats);
+            }
+            catch (KeyNotFoundException)
+            {
+                return NotFound();
             }
         }
     }

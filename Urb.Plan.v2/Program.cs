@@ -10,12 +10,20 @@ using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using Fun.Domain.Fun.Models;
+using Fun.Application.Fun.IServices;
+using Urb.Infrastructure.Fun.Services;
+using Fun.Infrastructure.Fun.Services;
+using Fun.Application.IComponentModels;
+using Fun.Application.ComponentModels;
+using Fun.Application.Fun.IRepositories;
+using Fun.Persistance.Fun.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 
 ConfigurationManager configuration = builder.Configuration;
 builder.Services.AddDbContext<MainDataContext>(options => options.UseSqlServer(configuration.GetConnectionString("SqlConnection")));
-builder.Services.AddIdentity<User, IdentityRole>(options =>
+builder.Services.AddIdentity<User, Role>(options =>
     {
         options.User.AllowedUserNameCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-.";
         options.Password.RequireUppercase = true;
@@ -32,9 +40,9 @@ builder.Services.AddControllers();
 builder.Services.AddRazorPages();
 builder.Services.AddAuthentication(options =>
 {
+    options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-    options.DefaultChallengeScheme = GoogleDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
 })
     .AddCookie()
     .AddGoogle(googleOptions =>
@@ -60,27 +68,8 @@ builder.Services.AddAuthentication(options =>
             ClockSkew = TimeSpan.Zero
         };
     });
-//builder.Services.AddAuthentication(options =>
-//{
-//    options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-//    options.DefaultChallengeScheme = GoogleDefaults.AuthenticationScheme;
-//})
-//.AddCookie()
-//.AddGoogle(googleOptions =>
-//{
-//    var googleAuth = configuration.GetSection("Authentication:Google");
-//    googleOptions.ClientId = googleAuth["ClientId"];
-//    googleOptions.ClientSecret = googleAuth["ClientSecret"];
-//    googleOptions.SaveTokens = true;          
-//    googleOptions.Scope.Add("email");
-//    googleOptions.Scope.Add("profile");
-//});
-builder.Services.AddSwaggerGen(c =>
-{
-    c.SwaggerDoc("v2", new OpenApiInfo { Title = "MVCCallWebAPI", Version = "v2" });
-});
-builder.Services.AddAutoMapper(typeof(AutoMapperProfile));
-builder.Configuration.AddJsonFile("appsettings.json");
+
+builder.Services.AddAutoMapper(typeof(AutoMapperProfile).Assembly);
 builder.Services.Configure<AppSettings>(builder.Configuration.GetSection("AppSettings"));
 builder.Services.AddCors(options =>
 {
@@ -117,6 +106,16 @@ builder.Services.AddSwaggerGen(c =>
         }
     });
 });
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<ITokenService, TokenService>();
+builder.Services.AddScoped<IUserRegisterModel, UserRegisterModel>();
+builder.Services.AddScoped<IInitiativeService, InitiativeService>();
+builder.Services.AddScoped<ICategoryService, CategoryService>();
+builder.Services.AddScoped<IInitiativeComponentModel, InitiativeComponentModel>();
+builder.Services.AddScoped<ICategoryComponentModel, CategoryComponentModel>();
+builder.Services.AddScoped(typeof(ICRUDRepository<>), typeof(CRUDRepository<>));
+
 
 var app = builder.Build();
 if (!app.Environment.IsDevelopment())
@@ -126,7 +125,7 @@ if (!app.Environment.IsDevelopment())
 app.UseSwagger();
 app.UseSwaggerUI(c =>
 {
-    c.SwaggerEndpoint("/swagger/v2/swagger.json", "MVCCallWebAPI");
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "MVCCallWebAPI");
 });
 app.UseStaticFiles();
 app.UseRouting();
@@ -134,5 +133,3 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 app.Run();
-
-

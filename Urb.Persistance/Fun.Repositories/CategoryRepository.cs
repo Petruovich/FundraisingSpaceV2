@@ -4,9 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Fun.Infrastructure.Fun.Services
+namespace Fun.Persistance.Fun.Repositories
 {
-    public class DonateService
+    public class CategoryRepository
     {
+
     }
 }

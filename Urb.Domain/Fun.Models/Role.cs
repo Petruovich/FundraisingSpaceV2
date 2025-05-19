@@ -9,6 +9,6 @@ namespace Fun.Domain.Fun.Models
 {
         public class Role : IdentityRole<int>
         {
-            public ICollection<IdentityUserRole<int>> UserRoles { get; set; }
+
         }
 }

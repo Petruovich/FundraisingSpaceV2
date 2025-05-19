@@ -11,7 +11,7 @@ namespace Urb.Domain.Urb.Models
     public class Token
     {
         [Key]
-        public string TokenId { get; set; }
+        public int TokenId { get; set; }
         public User User { get; set; }   
         public string Access_Token { get; set; }   
     }

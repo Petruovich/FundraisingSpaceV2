@@ -16,7 +16,7 @@ namespace Fun.Application.Fun.IServices
         public Task<object> Register(IUserRegisterModel userRegisterModel);
         public Task<IActionResult> AuthenticateUser(IUserAuthenticateModel authenticateUser);
         public Task<User> GetUser(string email);
-        public Task<string> GetMy();
+        public Task<int> GetMy();
         AuthenticationProperties GetAuthenticationProperties(string returnUrl);
         Task<User> HandleCallbackAsync();
     }

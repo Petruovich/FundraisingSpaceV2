@@ -4,16 +4,15 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Fun.Domain.Fun.Models
+namespace Fun.Application.ComponentModels
 {
-    public class InitiativeStat
+    public class InitiativeStatisticsDto
     {
-        public int Id { get; set; }
         public int InitiativeId { get; set; }
-        public Initiative Initiative { get; set; } = null!;
+        public string Title { get; set; } = null!;
         public int TotalViews { get; set; }
         public int TotalFundraisings { get; set; }
         public int TotalSubscribers { get; set; }
-        public DateTime LastActivityAt { get; set; } = DateTime.MinValue;
+        public List<FundraisingStatisticsDto> Fundraisings { get; set; } = new();
     }
 }

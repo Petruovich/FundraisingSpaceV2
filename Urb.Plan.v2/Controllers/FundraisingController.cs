@@ -37,20 +37,20 @@ namespace Fun.Plan.v2.Controllers
                 }
             }
 
-            [HttpPut("{id}")]
-            public async Task<IActionResult> Update(string id, [FromBody] Fundraising dto)
-            {
-                if (id != dto.Id) return BadRequest();
-                try
-                {
-                    var updated = await _svc.UpdateAsync(dto);
-                    return Ok(updated);
-                }
-                catch (UnauthorizedAccessException)
-                {
-                    return Forbid();
-                }
-            }
+            //[HttpPut("{id}")]
+            //public async Task<IActionResult> Update(string id, [FromBody] Fundraising dto)
+            //{
+            //    if (id != dto.Id) return BadRequest();
+            //    try
+            //    {
+            //        var updated = await _svc.UpdateAsync(dto);
+            //        return Ok(updated);
+            //    }
+            //    catch (UnauthorizedAccessException)
+            //    {
+            //        return Forbid();
+            //    }
+            //}
 
             [HttpDelete("{id}")]
             public async Task<IActionResult> Delete(string id)

@@ -4,9 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Fun.Infrastructure.Fun.Services
+namespace Fun.Application.IComponentModels
 {
-    public class DonateService
+    public interface ICategoryComponentModel
     {
+        string CategoryName { get; set; }
     }
 }

@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace Fun.Infrastructure.Fun.Services
 {
-    public class FundraisingService : IFundraisingService
+    public class FundraisingService /*: IFundraisingService*/
     {
         private readonly ICRUDRepository<Fundraising> _repo;
         private readonly MainDataContext _ctx;
@@ -78,6 +78,14 @@ namespace Fun.Infrastructure.Fun.Services
                 throw new UnauthorizedAccessException();
 
             await _repo.Delete(id);
+        }
+
+        public async Task<IEnumerable<Fundraising>> GetByUserAsync(int userId)
+        {
+            var userInitiatives = await _initiatives.GetByUserAsync(userId);
+            var ids = userInitiatives.Select(x => x.Id).ToHashSet();
+            var all = await _repo.ListAsync();
+            return all.Where(f => ids.Contains(f.InitiativeId));
         }
     }
 }

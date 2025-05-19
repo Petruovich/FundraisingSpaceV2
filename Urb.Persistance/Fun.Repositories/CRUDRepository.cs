@@ -15,10 +15,10 @@ namespace Fun.Persistance.Fun.Repositories
     {        
         private readonly MainDataContext _context;
         private readonly DbSet<T> _set;
-        public CRUDRepository(MainDataContext context, DbSet<T> set)
+        public CRUDRepository(MainDataContext context)
         {
             _context = context;
-            _set = set;
+            _set = _set = context.Set<T>();
         }
         public async Task<T> Create(T entity)
         {
@@ -26,7 +26,7 @@ namespace Fun.Persistance.Fun.Repositories
             await _context.SaveChangesAsync();
             return entity;         
         }
-        public async Task Delete(string id)
+        public async Task Delete(int id)
         {
             var entity = await _set.FindAsync(id);
             if (entity == null)
@@ -36,7 +36,7 @@ namespace Fun.Persistance.Fun.Repositories
             _context.Remove(id);
             await _context.SaveChangesAsync();           
         }
-        public async Task<T?> GetByIdAsync(string id)
+        public async Task<T?> GetByIdAsync(int id)
         {
             return await _set.FindAsync(id);
         }

@@ -1,5 +1,8 @@
-﻿using Fun.Application.Fun.IRepositories;
+﻿using AutoMapper;
+using Fun.Application.ComponentModels;
+using Fun.Application.Fun.IRepositories;
 using Fun.Application.Fun.IServices;
+using Fun.Application.IComponentModels;
 using Fun.Domain.Fun.Models;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -17,28 +20,37 @@ namespace Urb.Infrastructure.Fun.Services
         private readonly ICRUDRepository<Initiative> _repo;
         private readonly IHttpContextAccessor _httpCtx;
         private readonly IWebHostEnvironment _env;
+        private readonly IMapper _mapper;
+        private readonly IUserService _userService;
 
         public InitiativeService(
+            IUserService userService,
             ICRUDRepository<Initiative> repo,
             IHttpContextAccessor httpCtx,
-            IWebHostEnvironment env)
+            IWebHostEnvironment env,
+            IMapper mapper)
         {
+            _userService = userService;
             _env = env;
             _repo = repo;
             _httpCtx = httpCtx;
+            _mapper = mapper;
         }
 
         private string CurrentUserId =>
             _httpCtx.HttpContext!.User.FindFirst(ClaimTypes.NameIdentifier)!.Value!;
 
-        public async Task<Initiative> CreateAsync(Initiative dto)
+        public async Task<IInitiativeComponentModel> CreateAsync(IInitiativeComponentModel initiativeComponent)
         {
-            dto.UserId = CurrentUserId;
-            dto.CreatedDate = DateTime.UtcNow;
-            return await _repo.Create(dto);
+            var entity = _mapper.Map<Initiative>(initiativeComponent);
+            entity.UserId =  await _userService.GetMy();
+            entity.ImageUrl = await SaveImageAsync(initiativeComponent.ImageFile);
+            var created = await _repo.Create(entity);
+            var result = _mapper.Map<IInitiativeComponentModel>(created);
+            return result;
         }
 
-        public Task<Initiative?> GetByIdAsync(string id)
+        public Task<Initiative?> GetByIdAsync(int id)
             => _repo.GetByIdAsync(id);
 
         public async Task<IEnumerable<Initiative>> ListAsync()
@@ -47,25 +59,24 @@ namespace Urb.Infrastructure.Fun.Services
             return all;
         }
 
-        public async Task<Initiative> UpdateAsync(Initiative dto)
-        {
-            var existing = await _repo.GetByIdAsync(dto.Id);
-            if (existing == null) throw new KeyNotFoundException();
-            if (existing.UserId != CurrentUserId)
-                throw new UnauthorizedAccessException();
+        //public async Task<IInitiativeComponentModel> UpdateAsync(IInitiativeComponentModel initiativeComponent)
+        //{
+        //    var existing = await _repo.GetByIdAsync(initiativeComponent.Id);
+        //    if (existing == null) throw new KeyNotFoundException();
+        //    if (existing.UserId != CurrentUserId)
+        //        throw new UnauthorizedAccessException();
 
-            dto.UserId = existing.UserId;
-            dto.CreatedDate = existing.CreatedDate;
-            return await _repo.Put(dto);
-        }
+        //    dto.UserId = existing.UserId;
+        //    dto.CreatedDate = existing.CreatedDate;
+        //    return await _repo.Put(dto);
+        //}
 
-        public async Task DeleteAsync(string id)
+        public async Task DeleteAsync(int id)
         {
             var existing = await _repo.GetByIdAsync(id);
             if (existing == null) throw new KeyNotFoundException();
-            if (existing.UserId != CurrentUserId)
-                throw new UnauthorizedAccessException();
-
+            //if (existing.UserId != CurrentUserId)
+            //    throw new UnauthorizedAccessException();
             await _repo.Delete(id);
         }
         public async Task<string> SaveImageAsync(IFormFile file)
@@ -82,6 +93,56 @@ namespace Urb.Infrastructure.Fun.Services
                 await file.CopyToAsync(stream);
             }
             return "/" + finalPath.Replace("\\", "/");
+        }
+
+        public async Task<IEnumerable<Initiative>> GetByCategoryAsync(int categoryId)
+        {
+            var all = await _repo.ListAsync();
+            return all.Where(i => i.CategoryId == categoryId);
+        }
+
+        public async Task<IEnumerable<Initiative>> GetByUserAsync(int userId)
+        {
+            var all = await _repo.ListAsync();
+            return all.Where(i => i.UserId == userId);
+        }
+        public async Task<InitiativeStatisticsDto> GetStatisticsAsync(int initiativeId)
+        {
+            var initiative = await _db.Initiatives
+                .AsNoTracking()
+                .Include(i => i.Stat)
+                .Include(i => i.Subscribes)
+                .Include(i => i.Fundraisings)
+                    .ThenInclude(f => f.Stat)
+                .ThenInclude(s => s.DailyIncomes)
+                .FirstOrDefaultAsync(i => i.Id == initiativeId);
+
+            if (initiative is null)
+                throw new KeyNotFoundException($"Initiative #{initiativeId} not found.");
+
+            return new InitiativeStatisticsDto
+            {
+                InitiativeId = initiative.Id,
+                Title = initiative.Title,
+                TotalViews = initiative.Stat.TotalViews,
+                TotalFundraisings = initiative.Stat.TotalFundraisings,
+                TotalSubscribers = initiative.Stat.TotalSubscribers,
+                Fundraisings = initiative.Fundraisings.Select(f => new FundraisingStatisticsDto
+                {
+                    FundraisingId = f.Id,
+                    Name = f.Name,
+                    Goal = f.Stat.Goal,
+                    TotalCollected = f.Stat.TotalCollected,
+                    DailyIncomes = f.Stat.DailyIncomes
+                        .OrderBy(di => di.Date)
+                        .Select(di => new DailyIncomeDto
+                        {
+                            Date = di.Date,
+                            Amount = di.Amount
+                        })
+                        .ToList()
+                }).ToList()
+            };
         }
     }
 }

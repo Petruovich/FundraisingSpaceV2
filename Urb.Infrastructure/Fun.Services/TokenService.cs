@@ -15,22 +15,20 @@ using Urb.Domain.Urb.Models;
 
 namespace Fun.Infrastructure.Fun.Services
 {
-    internal class TokenService: ITokenService
+    public class TokenService: ITokenService
     {
         private readonly AppSettings _appSettings;
-        private readonly User _user;
         private readonly IConfiguration _configuration;
         //private readonly IUserAuthenticateModel _userAuthenticateModel;
 
-        public TokenService(IOptions<AppSettings> appSettings, User user, IConfiguration configuration/*, IUserAuthenticateModel userAuthenticateModel*/)
+        public TokenService(IOptions<AppSettings> appSettings, /*User user,*/ IConfiguration configuration/*, IUserAuthenticateModel userAuthenticateModel*/)
         {
             _configuration = configuration;
-            _user = user;
             _appSettings = appSettings.Value;
             //_userAuthenticateModel = userAuthenticateModel;
         }
 
-        public string GenerateToken(IUserAuthenticateModel model/*IdentityUser user*/)
+        public string GenerateToken(IUserAuthenticateModel model/*IdentityUser user*//*User model*/)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
             var tokenKey = Encoding.ASCII.GetBytes(_appSettings.JWTKey);

@@ -10,7 +10,7 @@ namespace Fun.Domain.Fun.Models
     public class Fundraising
     {
         public int Id { get; set; }
-        public string Name { get; set; }
+        public string Title { get; set; }
         public decimal GoalAmount { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime Deadline { get; set; }
