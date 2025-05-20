@@ -32,5 +32,9 @@ namespace Fun.Infrastructure.Fun.Services
             var created = await _repository.Create(newCategory);
             return newCategory;
         }
+        public Task<IEnumerable<Category>> GetAllAsync()
+        {
+            return _repository.ListAsync();
+        }
     }
 }

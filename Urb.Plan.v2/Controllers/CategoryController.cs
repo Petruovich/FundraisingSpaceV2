@@ -10,7 +10,6 @@ namespace Fun.Plan.v2.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    //[Authorize(Roles = "admin")]
     public class CategoriesController : ControllerBase
     {
         private readonly ICategoryService _svc;
@@ -18,7 +17,7 @@ namespace Fun.Plan.v2.Controllers
         public CategoriesController(ICategoryService svc) => _svc = svc;
 
         [HttpPost]
-        [Authorize]
+        [Authorize(Roles = "Admin")]
         [Route("AddCategory")]
         public async Task<IActionResult> Create([FromBody] CategoryComponentModel model)
         {
@@ -40,6 +39,14 @@ namespace Fun.Plan.v2.Controllers
         {
             var cat = await (_svc as dynamic).GetByIdAsync(id);
             return cat == null ? NotFound() : Ok(cat);
+        }
+
+        [HttpGet]
+        [AllowAnonymous]
+        public async Task<ActionResult<IEnumerable<Category>>> GetAll()
+        {
+            var list = await _svc.GetAllAsync();
+            return Ok(list);
         }
     }
 }

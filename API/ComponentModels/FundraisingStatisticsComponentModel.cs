@@ -6,12 +6,12 @@ using System.Threading.Tasks;
 
 namespace Fun.Application.ComponentModels
 {
-    public class FundraisingStatisticsDto
+    public class FundraisingStatisticsComponentModel
     {
         public int FundraisingId { get; set; }
-        public string Name { get; set; } = null!;
         public decimal Goal { get; set; }
         public decimal TotalCollected { get; set; }
-        public List<DailyIncomeDto> DailyIncomes { get; set; } = new();
+        public DateTime UpdatedAt { get; set; }
+        public List<FundraisingDailyIncomeComponentModel> DailyIncomes { get; set; } = new();
     }
 }

@@ -15,6 +15,6 @@ namespace Fun.Application.Fun.IServices
         Task<Initiative?> GetByIdAsync(int id);
         Task<IEnumerable<Initiative>> ListAsync();
         Task DeleteAsync(int id);
-        Task<InitiativeStatisticsDto> GetStatisticsAsync(int initiativeId);
+        Task<IEnumerable<Initiative>> GetByCategoryNamesAsync(IEnumerable<string> categoryNames);
     }
 }

@@ -114,7 +114,16 @@ builder.Services.AddScoped<IInitiativeService, InitiativeService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<IInitiativeComponentModel, InitiativeComponentModel>();
 builder.Services.AddScoped<ICategoryComponentModel, CategoryComponentModel>();
+builder.Services.AddScoped<ISubscribeComponentModel, SubscribeComponentModel>();
+builder.Services.AddScoped<ISubscribeService, SubscribeService>();
+builder.Services.AddScoped<IFundraisingService, FundraisingService>();
+builder.Services.AddScoped<IDonateService, DonateService>();
 builder.Services.AddScoped(typeof(ICRUDRepository<>), typeof(CRUDRepository<>));
+
+
+
+
+
 
 
 var app = builder.Build();

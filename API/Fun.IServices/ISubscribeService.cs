@@ -8,9 +8,8 @@ using System.Threading.Tasks;
 
 namespace Fun.Application.Fun.IServices
 {
-    public interface ICategoryService
+    public interface ISubscribeService
     {
-        Task<Category> CreateAsync(ICategoryComponentModel category);
-        Task<IEnumerable<Category>> GetAllAsync();
+        Task<Subscribe> CreateAsync(ISubscribeComponentModel model);
     }
 }

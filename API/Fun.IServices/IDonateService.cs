@@ -6,7 +6,8 @@ using System.Threading.Tasks;
 
 namespace Fun.Application.Fun.IServices
 {
-    internal interface IDonateService
+    public interface IDonateService
     {
+        Task DonateAsync(int fundraisingId, decimal amount, int userId);
     }
 }

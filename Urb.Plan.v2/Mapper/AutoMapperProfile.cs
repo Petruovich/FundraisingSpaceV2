@@ -38,14 +38,21 @@ namespace Urb.Plan.v2.Mapper
                     Description = sours.Description,
                     CategoryId = sours.CategoryId
                 });
+
             CreateMap<Initiative, IInitiativeComponentModel>()
-.ConstructUsingServiceLocator();
+                .ConstructUsingServiceLocator();
 
 
             CreateMap<ICategoryComponentModel, Category>()
-    .ForMember(c => c.CategoryName, opt => opt.MapFrom(m => m.CategoryName));
+                .ForMember(c => c.CategoryName, opt => opt.MapFrom(m => m.CategoryName));
+
             CreateMap<Category, ICategoryComponentModel>()
                 .ConstructUsing(src => new CategoryComponentModel { CategoryName = src.CategoryName });
+
+            CreateMap<ISubscribeComponentModel, Subscribe>()
+               .ForMember(dest => dest.InitiativeId, opt => opt.MapFrom(src => src.InitiativeId))
+               .ForMember(dest => dest.UserId, opt => opt.Ignore())
+               .ForMember(dest => dest.Id, opt => opt.Ignore());
         }
     }
 }

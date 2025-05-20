@@ -1,4 +1,5 @@
-﻿using Fun.Application.Fun.IRepositories;
+﻿using Fun.Application.ComponentModels;
+using Fun.Application.Fun.IRepositories;
 using Fun.Application.Fun.IServices;
 using Fun.Domain.Fun.Models;
 using Microsoft.AspNetCore.Http;
@@ -12,7 +13,7 @@ using System.Threading.Tasks;
 
 namespace Fun.Infrastructure.Fun.Services
 {
-    public class FundraisingService /*: IFundraisingService*/
+    public class FundraisingService: IFundraisingService
     {
         private readonly ICRUDRepository<Fundraising> _repo;
         private readonly MainDataContext _ctx;
@@ -36,22 +37,12 @@ namespace Fun.Infrastructure.Fun.Services
             var init = await _ctx.Initiatives
                 .FirstOrDefaultAsync(i => i.Id == dto.InitiativeId);
             if (init == null) throw new KeyNotFoundException("Initiative not found");
-            if (init.UserId != CurrentUserId)
-                throw new UnauthorizedAccessException();
 
             return await _repo.Create(dto);
         }
 
-        public Task<Fundraising?> GetByIdAsync(string id)
-            => _repo.GetByIdAsync(id);
-
-        public async Task<IEnumerable<Fundraising>> ListAsync(string initiativeId)
-        {
-            return await _ctx.Fundraisings
-                .AsNoTracking()
-                .Where(f => f.InitiativeId == initiativeId)
-                .ToListAsync();
-        }
+        public Task<Fundraising?> GetByIdAsync(int id)
+            => _repo.GetByIdAsync(id);      
 
         public async Task<Fundraising> UpdateAsync(Fundraising dto)
         {
@@ -61,31 +52,61 @@ namespace Fun.Infrastructure.Fun.Services
             var init = await _ctx.Initiatives
                 .FirstOrDefaultAsync(i => i.Id == existing.InitiativeId);
             if (init == null) throw new KeyNotFoundException("Initiative not found");
-            if (init.UserId != CurrentUserId)
-                throw new UnauthorizedAccessException();
 
             return await _repo.Put(dto);
         }
 
-        public async Task DeleteAsync(string id)
+        public async Task DeleteAsync(int id)
         {
             var existing = await _repo.GetByIdAsync(id);
             if (existing == null) throw new KeyNotFoundException();
             var init = await _ctx.Initiatives
                 .FirstOrDefaultAsync(i => i.Id == existing.InitiativeId);
             if (init == null) throw new KeyNotFoundException("Initiative not found");
-            if (init.UserId != CurrentUserId)
-                throw new UnauthorizedAccessException();
-
             await _repo.Delete(id);
         }
 
-        public async Task<IEnumerable<Fundraising>> GetByUserAsync(int userId)
+        //public async Task<IEnumerable<Fundraising>> GetByUserAsync(int userId)
+        //{
+        //    var userInitiatives = await _ctx.Initiatives.G GetByUserAsync(userId);
+        //    var ids = userInitiatives.Select(x => x.Id).ToHashSet();
+        //    var all = await _repo.ListAsync();
+        //    return all.Where(f => ids.Contains(f.InitiativeId));
+        //}
+
+        public async Task<IEnumerable<Fundraising>> GetByInitiativeAsync(int initiativeId)
         {
-            var userInitiatives = await _initiatives.GetByUserAsync(userId);
-            var ids = userInitiatives.Select(x => x.Id).ToHashSet();
             var all = await _repo.ListAsync();
-            return all.Where(f => ids.Contains(f.InitiativeId));
+            return all.Where(f => f.InitiativeId == initiativeId);
+        }
+
+        public async Task<FundraisingStatisticsComponentModel> GetStatisticsAsync(int fundraisingId)
+        {
+            var fund = await _ctx.Fundraisings
+                .AsNoTracking()
+                .Include(f => f.Stat)
+                    .ThenInclude(s => s.DailyIncomes)
+                .FirstOrDefaultAsync(f => f.Id == fundraisingId);
+
+            if (fund is null)
+                throw new KeyNotFoundException($"Fundraising #{fundraisingId} not found.");
+
+            var stat = fund.Stat;
+            return new FundraisingStatisticsComponentModel
+            {
+                FundraisingId = fund.Id,
+                Goal = stat.Goal,
+                TotalCollected = stat.TotalCollected,
+                UpdatedAt = stat.UpdatedAt,
+                DailyIncomes = stat.DailyIncomes
+                    .OrderBy(d => d.Date)
+                    .Select(d => new FundraisingDailyIncomeComponentModel
+                    {
+                        Date = d.Date,
+                        Amount = d.Amount
+                    })
+                    .ToList()
+            };
         }
     }
 }

@@ -1,5 +1,8 @@
-﻿using Fun.Application.Fun.IServices;
+﻿using Fun.Application.ComponentModels;
+using Fun.Application.Fun.IServices;
 using Fun.Domain.Fun.Models;
+using Fun.Infrastructure.Fun.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -10,14 +13,20 @@ namespace Fun.Plan.v2.Controllers
         public class FundraisingsController : ControllerBase
         {
             private readonly IFundraisingService _svc;
-            public FundraisingsController(IFundraisingService svc) => _svc = svc;
+            private readonly IHttpContextAccessor _httpCtx;
+            private readonly FundraisingService _fundraisingService;
+        public FundraisingsController(IFundraisingService svc, FundraisingService fundraisingService) /*=> _svc = svc;*/
+        {
+            _fundraisingService = fundraisingService;
+            _svc = svc;
+        }
 
-            [HttpGet("byInitiative/{initiativeId}")]
-            public async Task<IActionResult> GetByInitiative(string initiativeId)
-                => Ok(await _svc.ListAsync(initiativeId));
+            //[HttpGet("byInitiative/{initiativeId}")]
+            //public async Task<IActionResult> GetByInitiative(string initiativeId)
+            //    => Ok(await _svc.ListAsync(initiativeId));
 
             [HttpGet("{id}")]
-            public async Task<IActionResult> Get(string id)
+            public async Task<IActionResult> Get(int id)
             {
                 var f = await _svc.GetByIdAsync(id);
                 return f == null ? NotFound() : Ok(f);
@@ -37,23 +46,24 @@ namespace Fun.Plan.v2.Controllers
                 }
             }
 
-            //[HttpPut("{id}")]
-            //public async Task<IActionResult> Update(string id, [FromBody] Fundraising dto)
-            //{
-            //    if (id != dto.Id) return BadRequest();
-            //    try
-            //    {
-            //        var updated = await _svc.UpdateAsync(dto);
-            //        return Ok(updated);
-            //    }
-            //    catch (UnauthorizedAccessException)
-            //    {
-            //        return Forbid();
-            //    }
-            //}
-
+        //[HttpPut("{id}")]
+        //public async Task<IActionResult> Update(string id, [FromBody] Fundraising dto)
+        //{
+        //    if (id != dto.Id) return BadRequest();
+        //    try
+        //    {
+        //        var updated = await _svc.UpdateAsync(dto);
+        //        return Ok(updated);
+        //    }
+        //    catch (UnauthorizedAccessException)
+        //    {
+        //        return Forbid();
+        //    }
+        //}
+        
             [HttpDelete("{id}")]
-            public async Task<IActionResult> Delete(string id)
+            [Authorize(Roles = "Admin")]
+            public async Task<IActionResult> Delete(int id)
             {
                 try
                 {
@@ -65,5 +75,27 @@ namespace Fun.Plan.v2.Controllers
                     return Forbid();
                 }
             }
+
+        [AllowAnonymous]
+        [HttpGet("byInitiative/{initiativeId:int}")]
+        public async Task<ActionResult<IEnumerable<Fundraising>>> GetByInitiative(int initiativeId)
+            {
+                var list = await _svc.GetByInitiativeAsync(initiativeId);
+                return Ok(list);
+            }
+
+        [HttpGet("{id}/statistics")]
+        public async Task<ActionResult<FundraisingStatisticsComponentModel>> GetStatistics(int id)
+        {
+            try
+            {
+                var stats = await _svc.GetStatisticsAsync(id);
+                return Ok(stats);
+            }
+            catch (KeyNotFoundException)
+            {
+                return NotFound();
+            }
         }
+        }        
 }
