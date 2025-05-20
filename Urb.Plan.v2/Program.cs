@@ -18,6 +18,8 @@ using Fun.Application.IComponentModels;
 using Fun.Application.ComponentModels;
 using Fun.Application.Fun.IRepositories;
 using Fun.Persistance.Fun.Repositories;
+using Fun.Application.Fun.Settings;
+using Stripe;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -82,6 +84,14 @@ builder.Services.AddCors(options =>
     .AllowAnyMethod();
     });
 });
+
+builder.Services.Configure<StripeSettings>(
+    builder.Configuration.GetSection("Stripe"));
+var stripeOptions = builder.Configuration
+    .GetSection("Stripe").Get<StripeSettings>();
+StripeConfiguration.ApiKey = stripeOptions.SecretKey;
+
+
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "Urb.API", Version = "Test" });
@@ -108,7 +118,7 @@ builder.Services.AddSwaggerGen(c =>
 });
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<IUserService, UserService>();
-builder.Services.AddScoped<ITokenService, TokenService>();
+builder.Services.AddScoped<ITokenService, Fun.Infrastructure.Fun.Services.TokenService>();
 builder.Services.AddScoped<IUserRegisterModel, UserRegisterModel>();
 builder.Services.AddScoped<IInitiativeService, InitiativeService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
@@ -118,6 +128,7 @@ builder.Services.AddScoped<ISubscribeComponentModel, SubscribeComponentModel>();
 builder.Services.AddScoped<ISubscribeService, SubscribeService>();
 builder.Services.AddScoped<IFundraisingService, FundraisingService>();
 builder.Services.AddScoped<IDonateService, DonateService>();
+builder.Services.AddScoped<IStripeService, StripeService>();
 builder.Services.AddScoped(typeof(ICRUDRepository<>), typeof(CRUDRepository<>));
 
 
