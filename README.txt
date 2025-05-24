@@ -6,7 +6,7 @@ cd path_to_your_project
 
 
 2. Add a migration
-dotnet ef migrations add MigrationName --project Persistance --startup-project API --context MainDataContext
+  comand - dotnet ef migrations add MigrationName --project Persistance --startup-project API --context MainDataContext
 
 
 3. Apply migration to database
@@ -18,6 +18,11 @@ Notes
 
 
 4. Set User-Secrets
-PS C:\-\Fundrasing-master\Urb.Plan.v2> dotnet user-secrets set "Authentication:Google:ClientId" "<----Id---->"
 
-PS C:\-\Fundrasing-master\Urb.Plan.v2> dotnet user-secrets set "Authentication:Google:ClientSecret" "<----Secret---->"
+You run the dotnet user-secrets … commands in a terminal in the root folder of your project (where the .csproj file is located).
+Open the console (CLI/PowerShell/VS Code terminal) or the Package Manager Console in Visual Studio (Tools → NuGet Package Manager → Package Manager Console).
+
+  comand - dotnet user-secrets init
+  comand - dotnet user-secrets set "Authentication:Google:ClientId" "<ClientId>"
+  comand - dotnet user-secrets set "Authentication:Google:ClientSecret" "<ClientSecret>"
+
