@@ -1,5 +1,6 @@
 ﻿using Fun.Application.ComponentModels;
 using Fun.Application.IComponentModels;
+using Fun.Application.ResponseModels;
 using Fun.Domain.Fun.Models;
 using System;
 using System.Collections.Generic;
@@ -16,5 +17,6 @@ namespace Fun.Application.Fun.IServices
         Task<IEnumerable<Initiative>> ListAsync();
         Task DeleteAsync(int id);
         Task<IEnumerable<Initiative>> GetByCategoryNamesAsync(IEnumerable<string> categoryNames);
+        Task<InitiativeResponseModel> ToResponseModelAsync(Initiative entity);
     }
 }

@@ -1,5 +1,6 @@
 ﻿using Fun.Application.ComponentModels;
 using Fun.Application.Fun.IServices;
+using Fun.Application.TestModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -26,6 +27,19 @@ namespace Fun.Plan.v2.Controllers
             var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
             await _donationSvc.DonateAsync(fundraisingId, donateComponentModel.Amount, userId);
             return Ok();
+        }
+
+        [Route("DonateTest")]
+        [HttpPost]
+        public async Task<IActionResult> Post([FromBody] TestDonateComponentModel dto)
+        {
+            await _donationSvc.DonateAsync(dto.FundraisingId, dto.Amount, dto.UserId);
+            return Ok(new
+            {
+                dto.FundraisingId,
+                dto.Amount,
+                dto.UserId
+            });
         }
 
     }

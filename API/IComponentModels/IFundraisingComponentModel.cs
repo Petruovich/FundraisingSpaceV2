@@ -8,5 +8,9 @@ namespace Fun.Application.IComponentModels
 {
     public interface IFundraisingComponentModel
     {
+        public string Title { get; set; }
+        public decimal GoalAmount { get; set; }
+        public DateTime Deadline { get; set; }
+        public int InitiativeId { get; set; }
     }
 }

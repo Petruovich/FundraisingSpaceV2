@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Fun.Application.ComponentModels;
 using Fun.Application.IComponentModels;
+using Fun.Application.ResponseModels;
 using Fun.Domain.Fun.Models;
 using Microsoft.AspNetCore.Identity;
 using Urb.Domain.Urb.Models;
@@ -42,7 +43,6 @@ namespace Urb.Plan.v2.Mapper
             CreateMap<Initiative, IInitiativeComponentModel>()
                 .ConstructUsingServiceLocator();
 
-
             CreateMap<ICategoryComponentModel, Category>()
                 .ForMember(c => c.CategoryName, opt => opt.MapFrom(m => m.CategoryName));
 
@@ -53,6 +53,32 @@ namespace Urb.Plan.v2.Mapper
                .ForMember(dest => dest.InitiativeId, opt => opt.MapFrom(src => src.InitiativeId))
                .ForMember(dest => dest.UserId, opt => opt.Ignore())
                .ForMember(dest => dest.Id, opt => opt.Ignore());
+
+            CreateMap<FundraisingComponentModel, Fundraising>()
+                .ForMember(dest => dest.Id, opt => opt.Ignore())
+                .ForMember(dest => dest.CreatedAt, opt => opt.Ignore())
+                .ForMember(dest => dest.CreatedById, opt => opt.Ignore())
+                .ForMember(dest => dest.CreatedBy, opt => opt.Ignore())
+                .ForMember(dest => dest.Initiative, opt => opt.Ignore())
+                .ForMember(dest => dest.Stat, opt => opt.Ignore())
+                .ForMember(dest => dest.Donates, opt => opt.Ignore());
+
+            //CreateMap<InitiativeComponentModel, Initiative>()
+            //    .ForMember(dest => dest.ImageUrl, opt => opt.Ignore())
+            //    .ForMember(dest => dest.UserId, opt => opt.Ignore())
+            //    .ForMember(dest => dest.CategoryId, opt => opt.Ignore())
+            //    .ForMember(dest => dest.Stat, opt => opt.Ignore())
+            //    .ForMember(dest => dest.Fundraisings, opt => opt.Ignore())
+            //    .ForMember(dest => dest.Subscribes, opt => opt.Ignore());
+
+            CreateMap<Initiative, InitiativeResponseModel>()
+                .ForMember(dest => dest.ImageBase64, opt => opt.Ignore())
+                .ForMember(dest => dest.Title, opt => opt.MapFrom(s => s.Title))
+                .ForMember(dest => dest.Description, opt => opt.MapFrom(s => s.Description))
+                //.ForMember(dest => dest.ImageUrl, opt => opt.MapFrom(s => s.ImageUrl))
+                .ForMember(dest => dest.Id, opt => opt.MapFrom(s => s.Id));
+
+            
         }
     }
 }

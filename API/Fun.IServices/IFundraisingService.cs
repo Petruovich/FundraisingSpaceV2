@@ -10,7 +10,7 @@ namespace Fun.Application.Fun.IServices
 {
     public interface IFundraisingService
     {
-        Task<Fundraising> CreateAsync(Fundraising dto);
+        Task<Fundraising> CreateAsync(FundraisingComponentModel dto);
         Task<Fundraising?> GetByIdAsync(int id);
         //Task<IEnumerable<Fundraising>> ListAsync(string initiativeId);
         Task<Fundraising> UpdateAsync(Fundraising dto);

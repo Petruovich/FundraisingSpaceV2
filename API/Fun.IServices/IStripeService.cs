@@ -15,5 +15,6 @@ namespace Fun.Application.Fun.IServices
         string cancelUrl,
         int userId
     );
+        Task HandleWebhookAsync(string json, string stripeSignature);
     }
 }

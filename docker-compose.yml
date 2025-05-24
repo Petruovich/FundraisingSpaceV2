@@ -1,0 +1,18 @@
+services:
+  db:
+    image: postgres:13
+    # … ваш конфиг …
+
+  api:
+    build:
+      context: .
+      dockerfile: Fun.API/Dockerfile
+    depends_on:
+      - db
+    environment:
+      ConnectionStrings__DefaultConnection: "Host=db;Port=5432;Database=fundb;Username=postgres;Password=postgres"
+      DatabaseProvider: "Postgres"
+    ports:
+      - "5041:80"
+volumes:
+  fun-pgdata:

@@ -14,10 +14,8 @@ namespace Fun.Plan.v2.Controllers
         {
             private readonly IFundraisingService _svc;
             private readonly IHttpContextAccessor _httpCtx;
-            private readonly FundraisingService _fundraisingService;
-        public FundraisingsController(IFundraisingService svc, FundraisingService fundraisingService) /*=> _svc = svc;*/
+        public FundraisingsController(IFundraisingService svc) /*=> _svc = svc;*/
         {
-            _fundraisingService = fundraisingService;
             _svc = svc;
         }
 
@@ -33,11 +31,12 @@ namespace Fun.Plan.v2.Controllers
             }
 
             [HttpPost]
-            public async Task<IActionResult> Create([FromBody] Fundraising dto)
+            [Authorize]
+            public async Task<IActionResult> Create([FromBody] FundraisingComponentModel fundraisingComponentModel)
             {
                 try
                 {
-                    var created = await _svc.CreateAsync(dto);
+                    var created = await _svc.CreateAsync(fundraisingComponentModel);
                     return CreatedAtAction(nameof(Get), new { id = created.Id }, created);
                 }
                 catch (UnauthorizedAccessException)

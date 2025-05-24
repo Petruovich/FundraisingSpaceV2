@@ -1,7 +1,9 @@
-﻿using Fun.Application.ComponentModels;
+﻿using AutoMapper;
+using Fun.Application.ComponentModels;
 using Fun.Application.Fun.IRepositories;
 using Fun.Application.Fun.IServices;
 using Fun.Application.IComponentModels;
+using Fun.Application.ResponseModels;
 using Fun.Domain.Fun.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -17,12 +19,14 @@ namespace Fun.Plan.v2.Controllers
         private readonly IInitiativeService _svc;
         private readonly ICRUDRepository<Initiative> _initiativeRepo;
         private readonly ICRUDRepository<Category> _categoryRepo;
+        private readonly IMapper _mapper;
         //public InitiativesController(IInitiativeService svc) => _svc = svc;
-        public InitiativeController(IInitiativeService svc, ICRUDRepository<Initiative> initiativeRepo, ICRUDRepository<Category> categoryRepo)
+        public InitiativeController(IInitiativeService svc, ICRUDRepository<Initiative> initiativeRepo, ICRUDRepository<Category> categoryRepo, IMapper mapper)
         {
             _svc = svc ?? throw new ArgumentNullException(nameof(svc));
             _initiativeRepo = initiativeRepo ?? throw new ArgumentNullException(nameof(initiativeRepo));
             _categoryRepo = categoryRepo;
+            _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
         }
 
         [HttpGet]
@@ -77,10 +81,19 @@ namespace Fun.Plan.v2.Controllers
         }
 
         [HttpGet("byCategories")]
-        public async Task<ActionResult<IEnumerable<Initiative>>> GetByCategories([FromQuery] List<string> categoryNames)
+        [AllowAnonymous]
+        public async Task<IActionResult> GetByCategories([FromQuery] List<string> categoryNames)
         {
-            var items = await _svc.GetByCategoryNamesAsync(categoryNames);
-            return Ok(items);
+            var entities = await _svc.GetByCategoryNamesAsync(categoryNames);
+
+            var dtos = new List<InitiativeResponseModel>(entities.Count());
+            foreach (var e in entities)
+            {
+                var dto = await _svc.ToResponseModelAsync(e);
+                dtos.Add(dto);
+            }
+
+            return Ok(dtos);
         }
 
 

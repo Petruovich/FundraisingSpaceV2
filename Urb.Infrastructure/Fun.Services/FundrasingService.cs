@@ -1,4 +1,5 @@
-﻿using Fun.Application.ComponentModels;
+﻿using AutoMapper;
+using Fun.Application.ComponentModels;
 using Fun.Application.Fun.IRepositories;
 using Fun.Application.Fun.IServices;
 using Fun.Domain.Fun.Models;
@@ -10,6 +11,7 @@ using System.Linq;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
+using Urb.Infrastructure.Fun.Services;
 
 namespace Fun.Infrastructure.Fun.Services
 {
@@ -18,27 +20,51 @@ namespace Fun.Infrastructure.Fun.Services
         private readonly ICRUDRepository<Fundraising> _repo;
         private readonly MainDataContext _ctx;
         private readonly IHttpContextAccessor _httpCtx;
+        private readonly IMapper _mapper;
+        private readonly IUserService _userService;
 
         public FundraisingService(
             ICRUDRepository<Fundraising> repo,
             MainDataContext ctx,
-            IHttpContextAccessor httpCtx)
+            IHttpContextAccessor httpCtx,
+            IUserService userService, IMapper mapper)
         {
             _repo = repo;
             _ctx = ctx;
             _httpCtx = httpCtx;
+            _userService = userService;
+            _mapper = mapper;
         }
 
         private string CurrentUserId =>
             _httpCtx.HttpContext!.User.FindFirst(ClaimTypes.NameIdentifier)!.Value!;
 
-        public async Task<Fundraising> CreateAsync(Fundraising dto)
+        public async Task<Fundraising> CreateAsync(FundraisingComponentModel dto)
         {
-            var init = await _ctx.Initiatives
+            var initiative = await _ctx.Initiatives
                 .FirstOrDefaultAsync(i => i.Id == dto.InitiativeId);
-            if (init == null) throw new KeyNotFoundException("Initiative not found");
+            if (initiative == null)
+                throw new KeyNotFoundException($"Initiative #{dto.InitiativeId} not found.");
 
-            return await _repo.Create(dto);
+            var entity = _mapper.Map<Fundraising>(dto);
+
+            entity.CreatedAt = DateTime.UtcNow;
+            entity.CreatedById = await _userService.GetMy();
+            entity.Initiative = initiative;
+
+            var created = await _repo.Create(entity);
+
+            var stat = new FundraisingStat
+            {
+                FundraisingId = created.Id,
+                TotalCollected = 0m,
+                //CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            };
+            _ctx.FundraisingStats.Add(stat);
+            await _ctx.SaveChangesAsync();
+
+            return created;
         }
 
         public Task<Fundraising?> GetByIdAsync(int id)
@@ -95,7 +121,7 @@ namespace Fun.Infrastructure.Fun.Services
             return new FundraisingStatisticsComponentModel
             {
                 FundraisingId = fund.Id,
-                Goal = stat.Goal,
+                Goal = /*stat.Goal*/fund.GoalAmount, 
                 TotalCollected = stat.TotalCollected,
                 UpdatedAt = stat.UpdatedAt,
                 DailyIncomes = stat.DailyIncomes

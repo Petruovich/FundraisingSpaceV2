@@ -9,6 +9,6 @@ namespace Fun.Application.Fun.IServices
     public interface IDonateService
     {
         //Task DonateAsync(int fundraisingId, decimal amount, int userId);
-        Task<string> DonateAsync(int fundraisingId, decimal amount, int userId);
+        Task/*<string>*/ DonateAsync(int fundraisingId, decimal amount, int userId);
     }
 }

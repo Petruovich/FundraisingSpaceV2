@@ -3,9 +3,11 @@ using Fun.Application.ComponentModels;
 using Fun.Application.Fun.IRepositories;
 using Fun.Application.Fun.IServices;
 using Fun.Application.IComponentModels;
+using Fun.Application.ResponseModels;
 using Fun.Domain.Fun.Models;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using Stripe;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -167,6 +169,46 @@ namespace Urb.Infrastructure.Fun.Services
         //                .ToList()
         //        }).ToList()
         //    };
+        //}
+
+        public async Task<InitiativeResponseModel> ToResponseModelAsync(Initiative entity)
+        {
+            var dto = _mapper.Map<InitiativeResponseModel>(entity);
+
+            if (!string.IsNullOrEmpty(entity.ImageUrl))
+            {
+                var relative = entity.ImageUrl.TrimStart('/');
+                var wwwRoot = _env.WebRootPath;
+                var fullPath = Path.Combine(wwwRoot, relative);
+                if (!System.IO.File.Exists(fullPath))
+                    throw new FileNotFoundException();
+
+                using var stream = System.IO.File.OpenRead(fullPath);
+
+                var memory = new MemoryStream();
+                await stream.CopyToAsync(memory);
+                memory.Position = 0;
+                dto.ImageBase64 = Convert.ToBase64String(memory.ToArray());
+
+                //var fileName = Path.GetFileName(relative);
+                //var ext = Path.GetExtension(relative).TrimStart('.');
+                //var contentType = ext.Equals("png", StringComparison.OrdinalIgnoreCase) ? "image/png"
+                //                : ext.Equals("jpg", StringComparison.OrdinalIgnoreCase) ? "image/jpeg"
+                //                : ext.Equals("jpeg", StringComparison.OrdinalIgnoreCase) ? "image/jpeg"
+                //                : "application/octet-stream";
+
+                //dto.ImageFile = new FormFile(memory, 0, memory.Length, "ImageFile", fileName)
+                //{
+                //    Headers = new HeaderDictionary(),
+                //    ContentType = contentType
+                //};
+            }
+            return dto;
+        }
+        //public Task<InitiativeResponseModel> ToResponseModelAsync(Initiative entity)
+        //{
+        //    var dto = _mapper.Map<InitiativeResponseModel>(entity);
+        //    return Task.FromResult(dto);
         //}
     }
 }

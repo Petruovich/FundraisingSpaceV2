@@ -14,16 +14,22 @@ namespace Fun.Plan.v2.Controllers
     public class StripeController : ControllerBase
     {
         private readonly IStripeService _stripeSvc;
+        private readonly IUserService _userService;
 
-        public StripeController(IStripeService stripeSvc)
-            => _stripeSvc = stripeSvc;
+        public StripeController(IStripeService stripeSvc, IUserService userService)
+        {
+            _stripeSvc = stripeSvc; 
+            _userService = userService;
+        }
+             
+            
 
         [HttpPost("create-checkout-session")]
         [Authorize]
         public async Task<IActionResult> CreateCheckoutSession(
             [FromBody] CreateSessionComponentModel dto)
         {
-            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+            var userId = await _userService.GetMy();   /*int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value)*/;
 
             var sessionId = await _stripeSvc.CreateCheckoutSessionAsync(
                 dto.FundraisingId,
@@ -53,5 +59,8 @@ namespace Fun.Plan.v2.Controllers
                 return BadRequest(e.Message);
             }
         }
+
+
+        
     }
 }

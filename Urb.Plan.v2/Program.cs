@@ -20,11 +20,42 @@ using Fun.Application.Fun.IRepositories;
 using Fun.Persistance.Fun.Repositories;
 using Fun.Application.Fun.Settings;
 using Stripe;
+using Fun.Application.ResponseModels;
 
 var builder = WebApplication.CreateBuilder(args);
 
 ConfigurationManager configuration = builder.Configuration;
-builder.Services.AddDbContext<MainDataContext>(options => options.UseSqlServer(configuration.GetConnectionString("SqlConnection")));
+var dbProvider = configuration["DatabaseProvider"];
+
+builder.Services.AddDbContext<MainDataContext>(options =>
+{
+    if (string.Equals(dbProvider, "Postgres", StringComparison.OrdinalIgnoreCase))
+    {
+        var cs = configuration.GetConnectionString("Postgres");
+        options.UseNpgsql(cs);
+    }
+    else
+    {
+        var cs = configuration.GetConnectionString("SqlConnection");
+        options.UseSqlServer(cs);
+    }
+});
+//builder.Services.AddDbContext<MainDataContext>(opts =>
+//{
+//    if (dbProvider == "Postgres")
+//    {
+//        opts.UseNpgsql(
+//            builder.Configuration.GetConnectionString("Postgres"),
+//            b => b.MigrationsAssembly("Fun.Persistence"));
+//    }
+//    else
+//    {
+//        opts.UseSqlServer(
+//            builder.Configuration.GetConnectionString("SqlConnection"));           
+//    }
+//});
+
+//(options => options.UseSqlServer(configuration.GetConnectionString("SqlConnection")));
 builder.Services.AddIdentity<User, Role>(options =>
     {
         options.User.AllowedUserNameCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-.";
@@ -130,6 +161,11 @@ builder.Services.AddScoped<IFundraisingService, FundraisingService>();
 builder.Services.AddScoped<IDonateService, DonateService>();
 builder.Services.AddScoped<IStripeService, StripeService>();
 builder.Services.AddScoped(typeof(ICRUDRepository<>), typeof(CRUDRepository<>));
+builder.Services.AddScoped<IFundraisingComponentModel, FundraisingComponentModel>();
+builder.Services.AddScoped<IInitiativeResponseModel, InitiativeResponseModel>();
+builder.Services.AddScoped<IFileService, Fun.Infrastructure.Fun.Services.FileService>();
+
+//builder.Services.AddScoped<IFundraisingStatService, FundraisingStatService>();
 
 
 
@@ -138,6 +174,11 @@ builder.Services.AddScoped(typeof(ICRUDRepository<>), typeof(CRUDRepository<>));
 
 
 var app = builder.Build();
+//using (var scope = app.Services.CreateScope())
+//{
+//    var ctx = scope.ServiceProvider.GetRequiredService<MainDataContext>();
+//    ctx.Database.Migrate();
+//}
 if (!app.Environment.IsDevelopment())
     {
         app.UseExceptionHandler("/Error");
