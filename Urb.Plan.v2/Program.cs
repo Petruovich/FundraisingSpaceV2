@@ -21,6 +21,7 @@ using Fun.Persistance.Fun.Repositories;
 using Fun.Application.Fun.Settings;
 using Stripe;
 using Fun.Application.ResponseModels;
+using Microsoft.Extensions.Options;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -79,7 +80,7 @@ builder.Services.AddAuthentication(options =>
     options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
 })
     //.AddCookie()
-    .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, options => { options.Cookie.SameSite = SameSiteMode.Lax; })
     .AddGoogle(GoogleDefaults.AuthenticationScheme, googleOptions =>
     {
         googleOptions.SignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
@@ -91,6 +92,12 @@ builder.Services.AddAuthentication(options =>
         googleOptions.SaveTokens = true;
         googleOptions.Scope.Add("email");
         googleOptions.Scope.Add("profile");
+
+        googleOptions.CorrelationCookie.SameSite = SameSiteMode.Lax;
+        //googleOptions.CorrelationCookie.SameSite = SameSiteMode.Lax;
+        googleOptions.CorrelationCookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
+        //googleOptions.NonceCookie.SameSite = SameSiteMode.Lax;
+        //googleOptions.NonceCookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
     })
     .AddJwtBearer(jwt =>
     {
