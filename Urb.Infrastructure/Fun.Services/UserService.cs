@@ -119,9 +119,12 @@ namespace Urb.Infrastructure.Fun.Services
 
         public AuthenticationProperties GetAuthenticationProperties(string returnUrl)
         {
-            var properties = _signInManager.ConfigureExternalAuthenticationProperties(
-                GoogleDefaults.AuthenticationScheme,
-                $"{_redirectUri}?returnUrl={Uri.EscapeDataString(returnUrl)}");
+            //var properties = _signInManager.ConfigureExternalAuthenticationProperties(
+            //    GoogleDefaults.AuthenticationScheme,
+            //    $"{_redirectUri}?returnUrl={Uri.EscapeDataString(returnUrl)}");
+            var properties =  _signInManager.ConfigureExternalAuthenticationProperties(
+  GoogleDefaults.AuthenticationScheme,
+  "/api/User/ExternalLoginCallback");
             return properties;
         }
 

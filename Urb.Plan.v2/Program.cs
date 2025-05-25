@@ -76,11 +76,16 @@ builder.Services.AddAuthentication(options =>
     options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
     options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
 })
-    .AddCookie()
-    .AddGoogle(googleOptions =>
+    //.AddCookie()
+    .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddGoogle(GoogleDefaults.AuthenticationScheme, googleOptions =>
     {
+        googleOptions.SignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+        googleOptions.CallbackPath = "/api/User/ExternalLoginCallback";
         var g = configuration.GetSection("Authentication:Google");
+        googleOptions.CallbackPath = "/api/User/ExternalLoginCallback";
         googleOptions.ClientId = g["ClientId"];
         googleOptions.ClientSecret = g["ClientSecret"];
         googleOptions.SaveTokens = true;

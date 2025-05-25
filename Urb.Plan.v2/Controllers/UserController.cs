@@ -27,11 +27,13 @@ namespace Urb.Plan.v2.Controllers
         private IMapper _mapper;
         private AppSettings _appSettings;
         private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly SignInManager<User> _signInManager;
         public UserController(
             IUserService userService,
             IMapper mapper,
             IOptions<AppSettings> appSettings,
             IHttpContextAccessor httpContextAccessor,
+            SignInManager<User> signInManager,
             ITokenService jwtService)
         {
             _jwtService = jwtService;
@@ -39,6 +41,7 @@ namespace Urb.Plan.v2.Controllers
             _mapper = mapper;
             _appSettings = appSettings.Value;
             _httpContextAccessor = httpContextAccessor;
+            _signInManager = signInManager;
         }
 
         [Route("Register")]
@@ -128,6 +131,10 @@ namespace Urb.Plan.v2.Controllers
         [HttpGet("ExternalLoginCallback")]
         public async Task<IActionResult> ExternalLoginCallback(string returnUrl = "/")
         {
+            var info = await _signInManager.GetExternalLoginInfoAsync();
+            if (info == null)
+                return BadRequest("Cannot load external login info.");
+
             User domainUser = await _userService.HandleCallbackAsync();
 
             var authModel = new UserAuthenticateModel
