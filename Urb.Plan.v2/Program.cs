@@ -80,7 +80,10 @@ builder.Services.AddAuthentication(options =>
     options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
 })
     //.AddCookie()
-    .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, options => { options.Cookie.SameSite = SameSiteMode.Lax; })
+    .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, options => { /*options.Cookie.SameSite = SameSiteMode.Lax;*/
+        options.Cookie.SameSite = SameSiteMode.None;
+        options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+    })
     .AddGoogle(GoogleDefaults.AuthenticationScheme, googleOptions =>
     {
         googleOptions.SignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
@@ -93,9 +96,9 @@ builder.Services.AddAuthentication(options =>
         googleOptions.Scope.Add("email");
         googleOptions.Scope.Add("profile");
 
-        googleOptions.CorrelationCookie.SameSite = SameSiteMode.Lax;
+        googleOptions.CorrelationCookie.SameSite = SameSiteMode.None/*Lax*/;
         //googleOptions.CorrelationCookie.SameSite = SameSiteMode.Lax;
-        googleOptions.CorrelationCookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
+        googleOptions.CorrelationCookie.SecurePolicy = CookieSecurePolicy.Always/*SameAsRequest*/;
         //googleOptions.NonceCookie.SameSite = SameSiteMode.Lax;
         //googleOptions.NonceCookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
     })
