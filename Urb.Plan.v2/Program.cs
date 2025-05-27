@@ -1,4 +1,4 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.OpenApi.Models;
 using Urb.Plan.v2.Mapper;
@@ -84,6 +84,7 @@ builder.Services.AddAuthentication(options =>
     //options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
     //options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
     options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+    options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
     options.DefaultAuthenticateScheme = CookieAuthenticationDefaults.AuthenticationScheme;
     options.DefaultChallengeScheme = GoogleDefaults.AuthenticationScheme;
 })
@@ -96,19 +97,21 @@ builder.Services.AddAuthentication(options =>
     {
         googleOptions.SignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
         googleOptions.CallbackPath = "/api/User/ExternalLoginCallback";
-        var g = configuration.GetSection("Authentication:Google");
-        
+        var g = configuration.GetSection("Authentication:Google");    
         googleOptions.ClientId = g["ClientId"];
         googleOptions.ClientSecret = g["ClientSecret"];
         googleOptions.SaveTokens = true;
         googleOptions.Scope.Add("email");
         googleOptions.Scope.Add("profile");
+        googleOptions.CorrelationCookie.SameSite = SameSiteMode.None;
+        googleOptions.CorrelationCookie.SecurePolicy = CookieSecurePolicy.Always;
 
-        googleOptions.CorrelationCookie.SameSite = SameSiteMode.None/*Lax*/;
-        //googleOptions.CorrelationCookie.SameSite = SameSiteMode.Lax;
-        googleOptions.CorrelationCookie.SecurePolicy = CookieSecurePolicy.Always/*SameAsRequest*/;
-        //googleOptions.NonceCookie.SameSite = SameSiteMode.Lax;
-        //googleOptions.NonceCookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
+        googleOptions.CorrelationCookie.Name = ".AspNetCore.Correlation.Google";
+        googleOptions.CorrelationCookie.Path = "/";
+
+        //googleOptions.CorrelationCookie.HttpOnly = true;
+        //googleOptions.CorrelationCookie.SameSite = SameSiteMode.Unspecified;
+
     })
     .AddJwtBearer(jwt =>
     {
@@ -207,8 +210,8 @@ if (!app.Environment.IsDevelopment())
 //    c.SwaggerEndpoint("/swagger/v1/swagger.json", "MVCCallWebAPI");
 //});
 app.UseStaticFiles();
-app.UseRouting();
 app.UseCookiePolicy();
+app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();

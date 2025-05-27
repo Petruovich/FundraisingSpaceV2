@@ -143,7 +143,7 @@ namespace Urb.Plan.v2.Controllers
                 Password = null   
             };
             string jwt = _jwtService.GenerateToken(authModel);
-            return Ok(new { token = jwt, returnUrl });
+            return Ok(new { /*token = jwt,*/ returnUrl });
         }
     }
 } 
