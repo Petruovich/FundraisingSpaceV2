@@ -72,12 +72,20 @@ builder.Services.AddControllersWithViews()
 .AddNewtonsoftJson(options => options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore); 
 builder.Services.AddControllers();
 builder.Services.AddRazorPages();
+builder.Services.Configure<CookiePolicyOptions>(options =>
+{
+    options.MinimumSameSitePolicy = SameSiteMode.None;
+    options.Secure = CookieSecurePolicy.Always;
+});
 builder.Services.AddAuthentication(options =>
 {
-    options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+    //options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+    //options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    //options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+    //options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+    options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+    options.DefaultAuthenticateScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = GoogleDefaults.AuthenticationScheme;
 })
     //.AddCookie()
     .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, options => { /*options.Cookie.SameSite = SameSiteMode.Lax;*/
@@ -89,7 +97,7 @@ builder.Services.AddAuthentication(options =>
         googleOptions.SignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
         googleOptions.CallbackPath = "/api/User/ExternalLoginCallback";
         var g = configuration.GetSection("Authentication:Google");
-        googleOptions.CallbackPath = "/api/User/ExternalLoginCallback";
+        
         googleOptions.ClientId = g["ClientId"];
         googleOptions.ClientSecret = g["ClientSecret"];
         googleOptions.SaveTokens = true;
@@ -189,22 +197,18 @@ builder.Services.AddScoped<IFileService, Fun.Infrastructure.Fun.Services.FileSer
 
 
 var app = builder.Build();
-//using (var scope = app.Services.CreateScope())
-//{
-//    var ctx = scope.ServiceProvider.GetRequiredService<MainDataContext>();
-//    ctx.Database.Migrate();
-//}
 if (!app.Environment.IsDevelopment())
     {
         app.UseExceptionHandler("/Error");
     }
-app.UseSwagger();
-app.UseSwaggerUI(c =>
-{
-    c.SwaggerEndpoint("/swagger/v1/swagger.json", "MVCCallWebAPI");
-});
+//app.UseSwagger();
+//app.UseSwaggerUI(c =>
+//{
+//    c.SwaggerEndpoint("/swagger/v1/swagger.json", "MVCCallWebAPI");
+//});
 app.UseStaticFiles();
 app.UseRouting();
+app.UseCookiePolicy();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();

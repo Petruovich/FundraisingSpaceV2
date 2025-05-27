@@ -123,7 +123,7 @@ namespace Urb.Infrastructure.Fun.Services
             //    GoogleDefaults.AuthenticationScheme,
             //    $"{_redirectUri}?returnUrl={Uri.EscapeDataString(returnUrl)}");
             var properties =  _signInManager.ConfigureExternalAuthenticationProperties(
-  GoogleDefaults.AuthenticationScheme,
+  GoogleDefaults.AuthenticationScheme,/*, returnUrl*/
   "/api/User/ExternalLoginCallback");
             return properties;
         }
