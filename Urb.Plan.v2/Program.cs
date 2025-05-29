@@ -22,6 +22,8 @@ using Fun.Application.Fun.Settings;
 using Stripe;
 using Fun.Application.ResponseModels;
 using Microsoft.Extensions.Options;
+using Microsoft.AspNetCore.Server.Kestrel.Https;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -199,16 +201,27 @@ builder.Services.AddScoped<IFileService, Fun.Infrastructure.Fun.Services.FileSer
 
 
 
+//builder.WebHost.ConfigureKestrel(opts =>
+//  opts.ListenLocalhost(5001, lo => lo.UseHttps(new HttpsConnectionAdapterOptions
+//  {
+//      ServerCertificate = CertificateLoader.LoadFromPemFile(
+//      Path.Combine(AppContext.BaseDirectory, "localhost+2.pem"),
+//      Path.Combine(AppContext.BaseDirectory, "localhost+2-key.pem"))
+//  }))
+//);
+
+
+
 var app = builder.Build();
 if (!app.Environment.IsDevelopment())
     {
         app.UseExceptionHandler("/Error");
     }
-//app.UseSwagger();
-//app.UseSwaggerUI(c =>
-//{
-//    c.SwaggerEndpoint("/swagger/v1/swagger.json", "MVCCallWebAPI");
-//});
+app.UseSwagger();
+app.UseSwaggerUI(c =>
+{
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "MVCCallWebAPI");
+});
 app.UseStaticFiles();
 app.UseCookiePolicy();
 app.UseRouting();
