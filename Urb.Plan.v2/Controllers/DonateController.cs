@@ -20,9 +20,9 @@ namespace Fun.Plan.v2.Controllers
             _httpCtx = httpCtx;
         }
 
-        [HttpPost("{id}/donate")]
+        [HttpPost("donate")]
         [Authorize]
-        public async Task<IActionResult> Donate(int fundraisingId, [FromBody] DonateComponentModel donateComponentModel)
+        public async Task<IActionResult> Donate(int fundraisingId, /*[FromBody]*/ DonateComponentModel donateComponentModel)
         {
             var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
             await _donationSvc.DonateAsync(fundraisingId, donateComponentModel.Amount, userId);
