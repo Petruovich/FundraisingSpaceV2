@@ -22,7 +22,7 @@ using Fun.Application.Fun.Settings;
 using Stripe;
 using Fun.Application.ResponseModels;
 using Microsoft.Extensions.Options;
-using Microsoft.AspNetCore.Server.Kestrel.Https;
+//using Microsoft.AspNetCore.Server.Kestrel.Https;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -60,6 +60,17 @@ builder.Services.AddDbContext<MainDataContext>(options =>
 
 
 //(options => options.UseSqlServer(configuration.GetConnectionString("SqlConnection")));
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAllOrigins", policy =>
+    {
+        policy
+            .AllowAnyOrigin()   // Дозволяємо запити з будь-якого origin
+            .AllowAnyHeader()   // Дозволяємо будь-які заголовки (Content-Type, Authorization тощо)
+            .AllowAnyMethod();  // Дозволяємо будь-які HTTP-методи (GET, POST, PUT, DELETE…)
+        // .AllowCredentials() // НЕ викликайте AllowCredentials() разом із AllowAnyOrigin()! 
+    });
+});
 builder.Services.AddIdentity<User, Role>(options =>
     {
         options.User.AllowedUserNameCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-.";
@@ -82,14 +93,15 @@ builder.Services.Configure<CookiePolicyOptions>(options =>
 });
 builder.Services.AddAuthentication(options =>
 {
-    //options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
-    //options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
     //options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
     //options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-    options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-    options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-    options.DefaultAuthenticateScheme = CookieAuthenticationDefaults.AuthenticationScheme;
 
+
+    //options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+    options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+    //options.DefaultAuthenticateScheme = CookieAuthenticationDefaults.AuthenticationScheme;
     options.DefaultChallengeScheme = GoogleDefaults.AuthenticationScheme;
 })
     //.AddCookie()
@@ -215,6 +227,7 @@ builder.Services.AddScoped<IFileService, Fun.Infrastructure.Fun.Services.FileSer
 
 
 var app = builder.Build();
+app.UseCors("AllowAllOrigins");
 if (!app.Environment.IsDevelopment())
     {
         app.UseExceptionHandler("/Error");
