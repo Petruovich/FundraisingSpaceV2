@@ -8,7 +8,7 @@ namespace Fun.Application.Fun.IServices
 {
     public interface IStripeService
     {
-        Task<string> CreateCheckoutSessionAsync(
+        Task<(string sessionId, string url)> CreateCheckoutSessionAsync(
         int fundraisingId,
         decimal amount,       
         string successUrl,

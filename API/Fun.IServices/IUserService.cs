@@ -1,4 +1,5 @@
 ﻿using Fun.Application.IComponentModels;
+using Fun.Application.ResponseModels;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc;
 using System;
@@ -17,6 +18,8 @@ namespace Fun.Application.Fun.IServices
         public Task<IActionResult> AuthenticateUser(IUserAuthenticateModel authenticateUser);
         public Task<User> GetUser(string email);
         public Task<int> GetMy();
+        Task<UserProfileResponseModel> GetMyProfileAsync();
+        Task<UserProfileResponseModel> GetMyProfileAsyncBase64();
         AuthenticationProperties GetAuthenticationProperties(string returnUrl);
         Task<User> HandleCallbackAsync();
     }

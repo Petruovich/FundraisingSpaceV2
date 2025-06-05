@@ -2,9 +2,11 @@
 using Fun.Application.ComponentModels;
 using Fun.Application.Fun.IServices;
 using Fun.Application.IComponentModels;
+using Fun.Application.ResponseModels;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -29,6 +31,7 @@ namespace Urb.Infrastructure.Fun.Services
         private readonly IMapper _mapper;
         private readonly IConfiguration _configuration;
         private readonly string _redirectUri;
+        private readonly IWebHostEnvironment _env;
         //private readonly IUserAuthenticateModel _userAuthenticateModel;
 
         public UserService(
@@ -39,7 +42,7 @@ namespace Urb.Infrastructure.Fun.Services
             SignInManager<User> signInManager,
             IConfiguration configuration,
            // IUserAuthenticateModel userAuthenticateModel,
-            UserManager<User> userManager
+            UserManager<User> userManager, IWebHostEnvironment env
 
             )
         {
@@ -48,6 +51,7 @@ namespace Urb.Infrastructure.Fun.Services
             //_userAuthenticateModel = userAuthenticateModel;
             _jwtService = jWTService;
             _mapper = autoMapperProfile;
+            _env = env;
             _userManager = userManager;
             _signInManager = signInManager;
             _configuration = configuration;
@@ -150,6 +154,61 @@ namespace Urb.Infrastructure.Fun.Services
                 await _userManager.AddLoginAsync(user, info);
             }
             return user;
+        }
+
+        public async Task<UserProfileResponseModel> GetMyProfileAsync()
+        {
+            var currentId = await GetMy();
+
+            var user = await _userManager.FindByIdAsync(currentId.ToString());
+            if (user == null)
+                throw new KeyNotFoundException("Користувача не знайдено.");
+
+            var dto = _mapper.Map<UserProfileResponseModel>(user);
+            return dto;
+        }
+
+        public async Task<UserProfileResponseModel> GetMyProfileAsyncBase64()
+        {
+            // 1) Визначаємо числовий ID із токена/контексту
+            var currentId = await GetMy();
+
+            // 2) Шукаємо у базі по цьому ID (IdentityUser.Id має бути string, тому конвертуємо int->string)
+            var user = await _userManager.FindByIdAsync(currentId.ToString());
+            if (user == null)
+                throw new KeyNotFoundException("Користувача не знайдено.");
+
+            // 3) Мапимо сутність User -> UserProfileResponseModel (без ImageBase64):
+            var dto = _mapper.Map<UserProfileResponseModel>(user);
+
+            // 4) Якщо у користувача заданий шлях AvatarUrl, читаємо файл і робимо Base64
+            if (!string.IsNullOrWhiteSpace(user.AvatarUrl))
+            {
+                // прибираємо початковий слеш, щоб отримати відносний шлях від wwwroot
+                var relativePath = user.AvatarUrl.TrimStart('/');
+                // збираємо повний абсолютний шлях, наприклад "C:\... \wwwroot\images\avatars\john.jpg"
+                var fullPath = Path.Combine(_env.WebRootPath, relativePath);
+
+                if (File.Exists(fullPath))
+                {
+                    // читаємо всі байти
+                    byte[] imageBytes = await File.ReadAllBytesAsync(fullPath);
+                    // дістаємо розширення (наприклад "jpg" або "png")
+                    var ext = Path.GetExtension(relativePath).TrimStart('.').ToLowerInvariant();
+                    // формуємо рядок виду "data:image/png;base64,AAAA..."
+                    var base64 = Convert.ToBase64String(imageBytes);
+                    dto.ImageBase64 = $"data:image/{ext};base64,{base64}";
+                }
+                else
+                {
+                    // Якщо файл за цим шляхом не знайдено, можна або залишити ImageBase64 = null, 
+                    // або закинути виключення, залежно від логіки бізнесу:
+                    // throw new FileNotFoundException($"Файл аватара не знайдено: {fullPath}");
+                    dto.ImageBase64 = null;
+                }
+            }
+
+            return dto;
         }
     }
 }

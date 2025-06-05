@@ -25,51 +25,56 @@ namespace Fun.Infrastructure.Fun.Services
             _webhookSecret = stripeOpts.Value.WebhookSecret;
         }
 
-        public async Task<string> CreateCheckoutSessionAsync(
-            int fundraisingId,
-            decimal amount,
-            string successUrl,
-            string cancelUrl,
-            int userId)
+        public async Task<(string sessionId, string url)> CreateCheckoutSessionAsync(
+    int fundraisingId,
+    decimal amount,
+    string successUrl,
+    string cancelUrl,
+    int userId)
         {
             var options = new SessionCreateOptions
             {
                 PaymentMethodTypes = new List<string> { "card" },
                 LineItems = new List<SessionLineItemOptions>
+    {
+        new SessionLineItemOptions
+        {
+            PriceData = new SessionLineItemPriceDataOptions
             {
-                new SessionLineItemOptions
+                UnitAmountDecimal = amount * 100m,
+                Currency         = "usd",
+                ProductData = new SessionLineItemPriceDataProductDataOptions
                 {
-                    PriceData = new SessionLineItemPriceDataOptions
-                    {
-                        UnitAmountDecimal = amount * 100m,
-                        Currency         = "usd",
-                        ProductData = new SessionLineItemPriceDataProductDataOptions
-                        {
-                            Name = $"Donation for fundraising {fundraisingId}"
-                        }
-                    },
-                    Quantity = 1
+                    Name = $"Donation for fundraising {fundraisingId}"
                 }
             },
+            Quantity = 1
+        }
+    },
                 Mode = "payment",
-                SuccessUrl = successUrl + "?session_id={CHECKOUT_SESSION_ID}",
+                SuccessUrl = successUrl,
                 CancelUrl = cancelUrl,
                 Metadata = new Dictionary<string, string>
-            {
-                { "fundraisingId", fundraisingId.ToString() },
-                { "userId",        userId.ToString() }
-            }
+    {
+        { "fundraisingId", fundraisingId.ToString() },
+        { "userId",        userId.ToString() }
+    }
             };
 
             var service = new SessionService();
             var session = await service.CreateAsync(options);
-            return session.Id;  
+            return (session.Id, session.Url);
         }
+
 
         public async Task HandleWebhookAsync(string json, string stripeSignature)
         {
+            //var stripeEvent = EventUtility.ConstructEvent(
+            //    json, stripeSignature, _webhookSecret);
             var stripeEvent = EventUtility.ConstructEvent(
-                json, stripeSignature, _webhookSecret);
+    json, stripeSignature, _webhookSecret, throwOnApiVersionMismatch: false);
+
+            Console.WriteLine($"Webhook arrived: {stripeEvent.Type}");
 
             if (stripeEvent.Type == Events.CheckoutSessionCompleted)
             {

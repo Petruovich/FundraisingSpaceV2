@@ -33,7 +33,8 @@ namespace Fun.Plan.v2.Controllers
         public async Task<IActionResult> GetAll()
             => Ok(await _svc.ListAsync());
 
-        [HttpGet("{getById}")]
+        [HttpGet]
+        [Route("GetInitiativeById")]
         public async Task<IActionResult> GetById(int id)
         {
             var init = await _svc.GetByIdAsync(id);

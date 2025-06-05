@@ -119,6 +119,22 @@ namespace Urb.Plan.v2.Controllers
                 }
             }
 
+            [HttpGet("Profile")]
+            [Authorize] 
+            public async Task<IActionResult> GetProfile()
+            {
+                var profileResponse = await _userService.GetMyProfileAsyncBase64();
+                return Ok(profileResponse);
+            }
+
+
+
+
+
+
+
+
+
         [HttpGet("ExternalLog")]
         public IActionResult ExternalLogin(string returnUrl = "/")
         {
@@ -145,5 +161,7 @@ namespace Urb.Plan.v2.Controllers
             string jwt = _jwtService.GenerateToken(authModel);
             return Ok(new { /*token = jwt,*/ returnUrl });
         }
+
+
     }
 } 

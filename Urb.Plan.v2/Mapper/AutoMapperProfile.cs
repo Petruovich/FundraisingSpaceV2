@@ -78,7 +78,38 @@ namespace Urb.Plan.v2.Mapper
                 //.ForMember(dest => dest.ImageUrl, opt => opt.MapFrom(s => s.ImageUrl))
                 .ForMember(dest => dest.Id, opt => opt.MapFrom(s => s.Id));
 
-            
+            CreateMap<User, UserProfileResponseModel>()
+                // UserName у нас зберігається як "FirstName.SecondName". Розбиваємо по крапці:
+                .ForMember(dest => dest.FirstName, opt => opt.MapFrom(src =>
+                !string.IsNullOrWhiteSpace(src.UserName)
+                ? src.UserName.Split('.', StringSplitOptions.None)[0]
+                : string.Empty
+    ))
+                .ForMember(dest => dest.SecondName, opt => opt.MapFrom(src =>
+                    !string.IsNullOrWhiteSpace(src.UserName) && src.UserName.Contains('.')
+                        ? src.UserName.Split('.', StringSplitOptions.None).Skip(1).FirstOrDefault() ?? string.Empty
+                        : string.Empty
+                ))
+                .ForMember(dest => dest.Email, opt => opt.MapFrom(src => src.Email))
+                .ForMember(dest => dest.ImageBase64, opt => opt.Ignore())
+                .ForMember(dest => dest.PhoneNumber, opt => opt.MapFrom(src => src.PhoneNumber));
+
+            CreateMap<UserProfileResponseModel, User>()
+                .ForMember(dest => dest.UserName, opt => opt.MapFrom(src =>
+                    $"{src.FirstName}.{src.SecondName}"
+                ))
+                .ForMember(dest => dest.Email, opt => opt.MapFrom(src => src.Email))                
+                .ForMember(dest => dest.PhoneNumber, opt => opt.MapFrom(src => src.PhoneNumber))
+
+                .ForMember(dest => dest.PasswordHash, opt => opt.Ignore())
+                .ForMember(dest => dest.SecurityStamp, opt => opt.Ignore())
+                .ForMember(dest => dest.LockoutEnabled, opt => opt.Ignore())
+                .ForMember(dest => dest.LockoutEnd, opt => opt.Ignore())
+                .ForMember(dest => dest.AccessFailedCount, opt => opt.Ignore())
+                .ForMember(dest => dest.ConcurrencyStamp, opt => opt.Ignore())
+                .ForMember(dest => dest.NormalizedUserName, opt => opt.Ignore())
+                .ForMember(dest => dest.AvatarUrl, opt => opt.Ignore())
+                .ForMember(dest => dest.NormalizedEmail, opt => opt.Ignore());
         }
     }
 }
