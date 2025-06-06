@@ -38,7 +38,7 @@ public class MainDataContext : IdentityDbContext<User, Role, int>
             .HasOne(d => d.User)
             .WithMany(u => u.Donates)
             .HasForeignKey(d => d.UserId)
-            .OnDelete(DeleteBehavior.Cascade);
+            .OnDelete(DeleteBehavior.Restrict);
 
         modelBuilder.Entity<Subscribe>()
             .HasOne(s => s.User)
@@ -70,7 +70,7 @@ public class MainDataContext : IdentityDbContext<User, Role, int>
             .HasOne(d => d.Fundraising)
             .WithMany(f => f.Donates)
             .HasForeignKey(d => d.FundraisingId)
-            .OnDelete(DeleteBehavior.Restrict);
+            .OnDelete(DeleteBehavior.Cascade);
 
      
         modelBuilder.Entity<Fundraising>()

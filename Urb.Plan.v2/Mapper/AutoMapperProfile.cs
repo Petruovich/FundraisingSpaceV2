@@ -110,6 +110,32 @@ namespace Urb.Plan.v2.Mapper
                 .ForMember(dest => dest.NormalizedUserName, opt => opt.Ignore())
                 .ForMember(dest => dest.AvatarUrl, opt => opt.Ignore())
                 .ForMember(dest => dest.NormalizedEmail, opt => opt.Ignore());
+
+            CreateMap<UserProfileComponentModel, User>()
+                .ForMember(dest => dest.UserName, opt => opt.MapFrom((src, dest) =>
+                {
+                    if (string.IsNullOrWhiteSpace(src.FirstName) && string.IsNullOrWhiteSpace(src.SecondName))
+                        return dest.UserName;
+                    var f = src.FirstName?.Trim() ?? string.Empty;
+                    var s = src.SecondName?.Trim() ?? string.Empty;
+                    return $"{f}.{s}";
+                }))
+                                .ForMember(dest => dest.Email, opt =>
+                {
+                    opt.MapFrom(src => src.Email);
+                })
+                                .ForMember(dest => dest.PhoneNumber, opt =>
+                {
+                    opt.MapFrom(src => src.PhoneNumber);
+                })
+                                .ForMember(dest => dest.AvatarUrl, opt => opt.Ignore())
+                            .ForAllMembers(opt =>
+                {
+                    opt.Condition((src, dest, srcMember) =>
+                    {
+                        return srcMember != null;
+                    });
+                });
         }
     }
 }

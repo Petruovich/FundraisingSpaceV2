@@ -4,6 +4,7 @@ using Fun.Application.ComponentModels;
 using Fun.Application.Fun.IServices;
 using Fun.Application.IComponentModels;
 using Fun.Application.IControllers;
+using Fun.Application.ResponseModels;
 using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -125,6 +126,16 @@ namespace Urb.Plan.v2.Controllers
             {
                 var profileResponse = await _userService.GetMyProfileAsyncBase64();
                 return Ok(profileResponse);
+            }
+
+            [HttpPut("EditUserProfile")]
+            [Authorize]
+            public async Task<ActionResult<UserProfileResponseModel>> UpdateMyProfile(
+            [FromForm] UserProfileComponentModel model)
+            {
+                // FromForm — щоб підтримувати IFormFile (аватарка)
+                var updated = await _userService.UpdateProfileAsync(model);
+                return Ok(updated);
             }
 
 

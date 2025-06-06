@@ -40,6 +40,7 @@
 
   <ItemGroup>
     <Folder Include="wwwroot\images\initiatives\" />
+    <Folder Include="wwwroot\images\avatars\" />
   </ItemGroup>
 
 

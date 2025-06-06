@@ -1,6 +1,8 @@
-﻿using Fun.Application.IComponentModels;
+﻿using Fun.Application.ComponentModels;
+using Fun.Application.IComponentModels;
 using Fun.Application.ResponseModels;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
@@ -22,5 +24,7 @@ namespace Fun.Application.Fun.IServices
         Task<UserProfileResponseModel> GetMyProfileAsyncBase64();
         AuthenticationProperties GetAuthenticationProperties(string returnUrl);
         Task<User> HandleCallbackAsync();
+        Task<UserProfileResponseModel> UpdateProfileAsync(UserProfileComponentModel model);
+        Task<string> SaveAvatarAsync(IFormFile file);
     }
 }

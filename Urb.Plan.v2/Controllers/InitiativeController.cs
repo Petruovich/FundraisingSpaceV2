@@ -66,8 +66,8 @@ namespace Fun.Plan.v2.Controllers
         //    }
         //}
 
-        [HttpDelete("{id}")]
-        [Authorize(Roles = "Admin")]
+        [HttpDelete("InitiativeDelete")]
+        [Authorize]
         public async Task<IActionResult> Delete(int id)
         {
             try

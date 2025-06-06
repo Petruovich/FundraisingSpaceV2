@@ -1,5 +1,6 @@
 ﻿using Fun.Application.Fun.IRepositories;
 using Fun.Application.Fun.IServices;
+using Fun.Application.ResponseModels;
 using Fun.Domain.Fun.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
@@ -62,6 +63,84 @@ namespace Fun.Infrastructure.Fun.Services
             }
 
             await _db.SaveChangesAsync();
+        }
+
+        public async Task<List<DonorResponseModel>> GetTopDonorsAsync(int fundraisingId)
+        {
+            var grouped = await _db.Donates
+                .Where(d => d.FundraisingId == fundraisingId)
+                .GroupBy(d => d.UserId)
+                .Select(g => new
+                {
+                    UserId = g.Key,
+                    TotalAmount = g.Sum(x => x.Amount)
+                })
+                .OrderByDescending(x => x.TotalAmount)
+                .ToListAsync();
+            if (grouped.Count == 0)
+                return new List<DonorResponseModel>();
+
+            var userIds = grouped.Select(x => x.UserId).ToList();
+            var users = await _db.Users
+                .Where(u => userIds.Contains(u.Id))
+                .Select(u => new
+                {
+                    u.Id,
+                    u.UserName,
+                    u.AvatarUrl
+                })
+                .ToListAsync();
+
+            var result = new List<DonorResponseModel>(grouped.Count);
+            foreach (var item in grouped)
+            {
+                var usr = users.FirstOrDefault(u => u.Id == item.UserId);
+                if (usr == null)
+                    continue; 
+
+                string normalizedName;
+                if (!string.IsNullOrWhiteSpace(usr.UserName) && usr.UserName.Contains("."))
+                {
+                    var parts = usr.UserName.Split('.', StringSplitOptions.RemoveEmptyEntries);
+                    normalizedName = string.Join(" ", parts);
+                }
+                else
+                {
+                    normalizedName = usr.UserName ?? string.Empty;
+                }
+
+                string? avatarBase64 = null;
+                if (!string.IsNullOrEmpty(usr.AvatarUrl))
+                {
+                    var relativePath = usr.AvatarUrl.TrimStart('/');
+                    var wwwroot = Path.Combine(AppDomain.CurrentDomain.GetData("ContentRootPath")?.ToString() ?? string.Empty, "wwwroot");
+                    var fullPath = Path.Combine(wwwroot, relativePath);
+
+                    if (File.Exists(fullPath))
+                    {
+                        var bytes = await File.ReadAllBytesAsync(fullPath);
+                        var ext = Path.GetExtension(fullPath).ToLowerInvariant().TrimStart('.');
+                        var mime = ext switch
+                        {
+                            "png" => "image/png",
+                            "jpg" => "image/jpeg",
+                            "jpeg" => "image/jpeg",
+                            "gif" => "image/gif",
+                            _ => "application/octet-stream"
+                        };
+                        var base64Data = Convert.ToBase64String(bytes);
+                        avatarBase64 = $"data:{mime};base64,{base64Data}";
+                    }
+                }
+                result.Add(new DonorResponseModel
+                {
+                    UserId = item.UserId,
+                    NormalizedName = normalizedName,
+                    AvatarBase64 = avatarBase64,
+                    TotalAmount = item.TotalAmount
+                });
+            }
+            return result;
         }
     }
 }

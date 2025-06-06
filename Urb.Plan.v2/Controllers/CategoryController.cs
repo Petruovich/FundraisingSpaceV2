@@ -17,7 +17,7 @@ namespace Fun.Plan.v2.Controllers
         public CategoriesController(ICategoryService svc) => _svc = svc;
 
         [HttpPost]
-        [Authorize(Roles = "Admin")]
+        [Authorize] 
         [Route("AddCategory")]
         public async Task<IActionResult> Create([FromBody] CategoryComponentModel model)
         {

@@ -33,7 +33,7 @@ namespace Fun.Persistance.Fun.Repositories
             {
                 throw new ArgumentNullException(nameof(entity), "Entity not found");
             }
-            _context.Remove(id);
+            _context.Remove(entity);
             await _context.SaveChangesAsync();           
         }
         public async Task<T?> GetByIdAsync(int id)

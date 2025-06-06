@@ -1,6 +1,8 @@
 ﻿using Fun.Application.ComponentModels;
 using Fun.Application.Fun.IServices;
+using Fun.Application.ResponseModels;
 using Fun.Application.TestModels;
+using Fun.Infrastructure.Fun.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -42,5 +44,12 @@ namespace Fun.Plan.v2.Controllers
             });
         }
 
+        [HttpGet("top-donors")]
+        [AllowAnonymous]
+        public async Task<ActionResult<List<DonorResponseModel>>> GetTopDonors(int fundraisingId)
+        {
+            var result = await _donationSvc.GetTopDonorsAsync(fundraisingId);
+            return Ok(result);
+        }
     }
 }

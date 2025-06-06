@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
@@ -170,45 +171,74 @@ namespace Urb.Infrastructure.Fun.Services
 
         public async Task<UserProfileResponseModel> GetMyProfileAsyncBase64()
         {
-            // 1) Визначаємо числовий ID із токена/контексту
             var currentId = await GetMy();
 
-            // 2) Шукаємо у базі по цьому ID (IdentityUser.Id має бути string, тому конвертуємо int->string)
             var user = await _userManager.FindByIdAsync(currentId.ToString());
             if (user == null)
                 throw new KeyNotFoundException("Користувача не знайдено.");
-
-            // 3) Мапимо сутність User -> UserProfileResponseModel (без ImageBase64):
             var dto = _mapper.Map<UserProfileResponseModel>(user);
-
-            // 4) Якщо у користувача заданий шлях AvatarUrl, читаємо файл і робимо Base64
             if (!string.IsNullOrWhiteSpace(user.AvatarUrl))
             {
-                // прибираємо початковий слеш, щоб отримати відносний шлях від wwwroot
                 var relativePath = user.AvatarUrl.TrimStart('/');
-                // збираємо повний абсолютний шлях, наприклад "C:\... \wwwroot\images\avatars\john.jpg"
                 var fullPath = Path.Combine(_env.WebRootPath, relativePath);
 
                 if (File.Exists(fullPath))
                 {
-                    // читаємо всі байти
                     byte[] imageBytes = await File.ReadAllBytesAsync(fullPath);
-                    // дістаємо розширення (наприклад "jpg" або "png")
                     var ext = Path.GetExtension(relativePath).TrimStart('.').ToLowerInvariant();
-                    // формуємо рядок виду "data:image/png;base64,AAAA..."
                     var base64 = Convert.ToBase64String(imageBytes);
                     dto.ImageBase64 = $"data:image/{ext};base64,{base64}";
                 }
                 else
                 {
-                    // Якщо файл за цим шляхом не знайдено, можна або залишити ImageBase64 = null, 
-                    // або закинути виключення, залежно від логіки бізнесу:
-                    // throw new FileNotFoundException($"Файл аватара не знайдено: {fullPath}");
                     dto.ImageBase64 = null;
                 }
             }
-
             return dto;
+        }
+
+        public async Task<UserProfileResponseModel> UpdateProfileAsync(UserProfileComponentModel model)
+        {
+            var myUserId = await GetMy();
+            var userEntity = await _userManager.Users
+                .FirstOrDefaultAsync(u => u.Id == myUserId);
+            if (userEntity == null)
+                throw new KeyNotFoundException($"Користувач #{myUserId} не знайдений.");
+            if (model.AvatarFile != null)
+            {
+                var newAvatarUrl = await SaveAvatarAsync(model.AvatarFile);
+                userEntity.AvatarUrl = newAvatarUrl;
+            }
+            _mapper.Map(model, userEntity);
+                        var updateResult = await _userManager.UpdateAsync(userEntity);
+            if (!updateResult.Succeeded)
+            {
+                var errors = string.Join("; ", updateResult.Errors);
+                throw new InvalidOperationException($"Не вдалося оновити користувача: {errors}");
+            }
+            var responseDto = _mapper.Map<UserProfileResponseModel>(userEntity);
+            return responseDto;
+        }
+
+        public async Task<string> SaveAvatarAsync(IFormFile file)
+        {
+            var fileName = Path.GetFileNameWithoutExtension(file.FileName);
+            var fileExt = Path.GetExtension(file.FileName);
+            var uniqueName = $"{fileName}_{Guid.NewGuid()}{fileExt}";
+
+            var relativeFolder = Path.Combine("images", "avatars");
+            var physicalFolder = Path.Combine(_env.WebRootPath, relativeFolder);
+
+            if (!Directory.Exists(physicalFolder))
+                Directory.CreateDirectory(physicalFolder);
+
+            var fullPath = Path.Combine(physicalFolder, uniqueName);
+            using (var stream = new FileStream(fullPath, FileMode.Create))
+            {
+                await file.CopyToAsync(stream);
+            }
+            var url = "/" + Path.Combine(relativeFolder, uniqueName).Replace("\\", "/");
+            return url;
         }
     }
 }
