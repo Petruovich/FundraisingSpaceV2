@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Data;
+using Urb.Infrastructure.Fun.Services;
 
 namespace Fun.Plan.v2.Controllers
 {
@@ -33,13 +34,32 @@ namespace Fun.Plan.v2.Controllers
         public async Task<IActionResult> GetAll()
             => Ok(await _svc.ListAsync());
 
-        [HttpGet]
-        [Route("GetInitiativeById")]
-        public async Task<IActionResult> GetById(int id)
+        //[HttpGet]
+        //[Route("GetInitiativeById")]
+        //public async Task<IActionResult> GetById(int id)
+        //{
+        //    var init = await _svc.GetByIdAsync(id);
+        //    return init == null ? NotFound() : Ok(init);
+        //}
+        [HttpGet("GetInitiativeById")]
+        [AllowAnonymous]
+        public async Task<ActionResult<InitiativeDetailResponseModel>> GetById(int id)
         {
-            var init = await _svc.GetByIdAsync(id);
-            return init == null ? NotFound() : Ok(init);
+            try
+            {
+                var dto = await _svc.GetByIdWithFundraisingsAsync(id);
+                return Ok(dto);
+            }
+            catch (KeyNotFoundException)
+            {
+                return NotFound(new { Message = $"Initiative #{id} not found." });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = "Server error: " + ex.Message });
+            }
         }
+
 
         [Authorize]
         [Route("AddInitiative")]
@@ -97,7 +117,55 @@ namespace Fun.Plan.v2.Controllers
             return Ok(dtos);
         }
 
+        [HttpGet("byCategoriesWithPagin")]
+        [AllowAnonymous]
+        public async Task<IActionResult> GetByCategories(
+    [FromQuery] List<string> categoryNames,
+    [FromQuery] int page = 1)
+        {
+            const int PageSize = 15;
+            var all = await _svc.GetByCategoryNamesAsync(categoryNames);
+                        var paged = all
+                .Skip((page - 1) * PageSize)
+                .Take(PageSize)
+                .ToList();
+                        var dtos = new List<InitiativeResponseModel>(paged.Count);
+            foreach (var e in paged)
+            {
+                var dto = await _svc.ToResponseModelAsync(e);
+                dtos.Add(dto);
+            }
+            return Ok(new
+            {
+                page,
+                pageSize = PageSize,
+                totalCount = all.Count(),  
+                items = dtos
+            });
+        }
 
+        [HttpPut("EditInitiative")]
+        [Authorize]
+        public async Task<IActionResult> Edit(int id, [FromForm] InitiativeEditComponentModel model)
+        {
+            try
+            {
+                await _svc.EditInitiativeAsync(id, model);
+                return Ok(new { Message = $"Initiative #{id} has been updated." });
+            }
+            catch (KeyNotFoundException)
+            {
+                return NotFound(new { Message = $"Initiative #{id} not found." });
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return Forbid();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = "Unexpected error. " + ex.Message });
+            }
+        }
 
         //[HttpGet("{id}/statistics")]
         //public async Task<ActionResult<InitiativeStatisticsComponentModel>> GetStatistics(int id)
@@ -112,6 +180,7 @@ namespace Fun.Plan.v2.Controllers
         //        return NotFound();
         //    }
         //}
+
     }
 }
 

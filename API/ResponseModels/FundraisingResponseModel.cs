@@ -6,7 +6,12 @@ using System.Threading.Tasks;
 
 namespace Fun.Application.ResponseModels
 {
-    internal class FundraisingResponseModel
+    public class FundraisingResponseModel
     {
+        public int Id { get; set; }
+        public string Title { get; set; } = default!;
+        public decimal GoalAmount { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public DateTime Deadline { get; set; }
     }
 }

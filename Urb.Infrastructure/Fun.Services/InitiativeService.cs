@@ -7,6 +7,7 @@ using Fun.Application.ResponseModels;
 using Fun.Domain.Fun.Models;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
 using Stripe;
 using System;
 using System.Collections.Generic;
@@ -25,6 +26,7 @@ namespace Urb.Infrastructure.Fun.Services
         private readonly IMapper _mapper;
         private readonly IUserService _userService;
         private readonly ICRUDRepository<Category> _categoryRepo;
+        private readonly MainDataContext _db;
 
         public InitiativeService(
             IUserService userService,
@@ -32,7 +34,8 @@ namespace Urb.Infrastructure.Fun.Services
             IHttpContextAccessor httpCtx,
             IWebHostEnvironment env,
             IMapper mapper,
-            ICRUDRepository<Category> cRUD)
+            ICRUDRepository<Category> cRUD,
+            MainDataContext db)
         {
             _userService = userService;
             _env = env;
@@ -40,6 +43,7 @@ namespace Urb.Infrastructure.Fun.Services
             _httpCtx = httpCtx;
             _mapper = mapper;
             _categoryRepo = cRUD;
+            _db = db;
         }
 
         private string CurrentUserId =>
@@ -114,14 +118,12 @@ namespace Urb.Infrastructure.Fun.Services
             if (categoryNames == null || !categoryNames.Any())
                 return await _repo.ListAsync();
 
-            // 1) Знаходимо всі категорії з такими назвами
             var allCats = await _categoryRepo.ListAsync();
             var ids = allCats
                 .Where(c => categoryNames.Contains(c.CategoryName))
                 .Select(c => c.Id)
                 .ToHashSet();
 
-            // 2) Фільтруємо ініціативи по CategoryId
             var allInits = await _repo.ListAsync();
             return allInits
                 .Where(i => ids.Contains(i.CategoryId));
@@ -210,5 +212,113 @@ namespace Urb.Infrastructure.Fun.Services
         //    var dto = _mapper.Map<InitiativeResponseModel>(entity);
         //    return Task.FromResult(dto);
         //}
+
+
+        public async Task EditInitiativeAsync(int id, InitiativeEditComponentModel model)
+        {
+           
+            var initiative = await _db.Initiatives
+                .FirstOrDefaultAsync(i => i.Id == id);
+
+            if (initiative == null)
+                throw new KeyNotFoundException($"Initiative #{id} not found.");
+
+           
+            var currentUserId = await _userService.GetMy(); 
+            if (initiative.UserId != currentUserId /* && !UserIsAdmin(...) */)
+                throw new UnauthorizedAccessException("You are not allowed to edit this initiative.");
+
+
+            if (!string.IsNullOrWhiteSpace(model.Title))
+            {
+                initiative.Title = model.Title!.Trim();
+            }
+
+
+            if (!string.IsNullOrWhiteSpace(model.Description))
+            {
+                initiative.Description = model.Description!.Trim();
+            }
+
+
+            if (model.ImageFile != null && model.ImageFile.Length > 0)
+            {
+
+                if (!string.IsNullOrEmpty(initiative.ImageUrl))
+                {
+                    var oldRelative = initiative.ImageUrl.TrimStart('/');
+                    var oldAbsolute = Path.Combine(_env.WebRootPath, oldRelative);
+                    if (System.IO.File.Exists(oldAbsolute))
+                    {
+                        try
+                        {
+                            System.IO.File.Delete(oldAbsolute);
+                        }
+                        catch
+                        {
+                           
+                        }
+                    }
+                }
+
+                var newImageUrl = await SaveImageAsync(model.ImageFile);
+                initiative.ImageUrl = newImageUrl;
+            }
+            await _db.SaveChangesAsync();
+        }
+
+        public async Task<InitiativeDetailResponseModel> GetByIdWithFundraisingsAsync(int id)
+        {
+            var initiative = await _db.Initiatives
+                .Include(i => i.Fundraisings)
+                .FirstOrDefaultAsync(i => i.Id == id);
+
+            if (initiative == null)
+                throw new KeyNotFoundException($"Initiative #{id} not found.");
+
+            string? imageBase64 = null;
+            if (!string.IsNullOrEmpty(initiative.ImageUrl))
+            {
+                var relative = initiative.ImageUrl.TrimStart('/');
+                var fullPath = Path.Combine(_env.WebRootPath, relative);
+                if (System.IO.File.Exists(fullPath))
+                {
+                    var bytes = await System.IO.File.ReadAllBytesAsync(fullPath);
+
+                    var ext = Path.GetExtension(fullPath).TrimStart('.').ToLowerInvariant();
+                    var mime = ext switch
+                    {
+                        "png" => "image/png",
+                        "jpg" => "image/jpeg",
+                        "jpeg" => "image/jpeg",
+                        "gif" => "image/gif",
+                        _ => "application/octet-stream"
+                    };
+                    var b64 = Convert.ToBase64String(bytes);
+                    imageBase64 = $"data:{mime};base64,{b64}";
+                }
+            }
+
+            var frList = initiative.Fundraisings
+                .Select(f => new FundraisingResponseModel
+                {
+                    Id = f.Id,
+                    Title = f.Title,
+                    GoalAmount = f.GoalAmount,
+                    CreatedAt = f.CreatedAt,
+                    Deadline = f.Deadline
+                })
+                .ToList();
+
+            return new InitiativeDetailResponseModel
+            {
+                Id = initiative.Id,
+                Title = initiative.Title,
+                Description = initiative.Description,
+                CategoryId = initiative.CategoryId,
+                ImageBase64 = imageBase64,
+                Fundraisings = frList
+            };
+        }
     }
 }

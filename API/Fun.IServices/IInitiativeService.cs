@@ -18,5 +18,7 @@ namespace Fun.Application.Fun.IServices
         Task DeleteAsync(int id);
         Task<IEnumerable<Initiative>> GetByCategoryNamesAsync(IEnumerable<string> categoryNames);
         Task<InitiativeResponseModel> ToResponseModelAsync(Initiative entity);
+        Task EditInitiativeAsync(int id, InitiativeEditComponentModel model);
+        Task<InitiativeDetailResponseModel> GetByIdWithFundraisingsAsync(int id);
     }
 }
