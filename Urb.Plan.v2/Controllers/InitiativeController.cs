@@ -180,7 +180,38 @@ namespace Fun.Plan.v2.Controllers
         //        return NotFound();
         //    }
         //}
-
+        [HttpGet("InitiativeStat")]
+        [AllowAnonymous]
+        public async Task<ActionResult<List<InitiativeStatResponseModel>>> GetDailyStats(int id)
+        {
+            try
+            {
+                var stats = await _svc.GetDailyStatsAsync(id);
+                return Ok(stats);
+            }
+            catch (KeyNotFoundException)
+            {
+                return NotFound(new { Message = $"Initiative #{id} not found." });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = "Server error: " + ex.Message });
+            }
+        }
+        [HttpGet("InitiativeMonth-YearStat")]
+        [AllowAnonymous]
+        public async Task<IActionResult> GetOverview(int id)
+        {
+            try
+            {
+                var dto = await _svc.GetOverviewAsync(id);
+                return Ok(dto);
+            }
+            catch (KeyNotFoundException)
+            {
+                return NotFound(new { Message = $"Initiative #{id} not found." });
+            }
+        }
     }
 }
 

@@ -78,6 +78,7 @@ builder.Services.AddIdentity<User, Role>(options =>
         options.Password.RequireNonAlphanumeric = true;
         options.Password.RequiredLength = 6;     
         options.User.RequireUniqueEmail = true;
+        options.SignIn.RequireConfirmedEmail = false;
     })
 .AddEntityFrameworkStores<MainDataContext>()
 .AddSignInManager<SignInManager<User>>()
@@ -206,6 +207,7 @@ builder.Services.AddScoped(typeof(ICRUDRepository<>), typeof(CRUDRepository<>));
 builder.Services.AddScoped<IFundraisingComponentModel, FundraisingComponentModel>();
 builder.Services.AddScoped<IInitiativeResponseModel, InitiativeResponseModel>();
 builder.Services.AddScoped<IFileService, Fun.Infrastructure.Fun.Services.FileService>();
+builder.Services.AddScoped<IVerificationService, VerificationService>();
 
 //builder.Services.AddScoped<IFundraisingStatService, FundraisingStatService>();
 

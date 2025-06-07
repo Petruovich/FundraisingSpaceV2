@@ -319,5 +319,80 @@ namespace Urb.Infrastructure.Fun.Services
                 //Fundraisings = frList
             };
         }
+
+        public async Task<List<InitiativeStatResponseModel>> GetDailyStatsAsync(int initiativeId)
+        {
+
+            var query = from di in _db.FundraisingDailyIncomes
+                        join fs in _db.FundraisingStats
+                            on di.FundraisingStatId equals fs.Id
+                        join f in _db.Fundraisings
+                            on fs.FundraisingId equals f.Id
+                        where f.InitiativeId == initiativeId
+                        group di by di.Date into g
+                        select new InitiativeStatResponseModel
+                        {
+                            Date = g.Key,
+                            TotalAmount = g.Sum(x => x.Amount)
+                        };
+
+            return await query
+                .OrderBy(m => m.Date)
+                .ToListAsync();
+        }
+
+        public async Task<InitiativeOverviewResponseModel> GetOverviewAsync(int initiativeId)
+        {
+            var total = await (
+                from di in _db.FundraisingDailyIncomes
+                join fs in _db.FundraisingStats on di.FundraisingStatId equals fs.Id
+                join f in _db.Fundraisings on fs.FundraisingId equals f.Id
+                where f.InitiativeId == initiativeId
+                select di.Amount
+            ).SumAsync();
+
+            var now = DateTime.UtcNow;
+            //var firstOfThis = new DateTime(now.Year, now.Month, 1);
+            //var firstOfLast = firstOfThis.AddMonths(-1);
+
+            //var monthly = await (
+            //    from di in _db.FundraisingDailyIncomes
+            //    join fs in _db.FundraisingStats on di.FundraisingStatId equals fs.Id
+            //    join f in _db.Fundraisings on fs.FundraisingId equals f.Id
+            //    where f.InitiativeId == initiativeId
+            //       && di.Date >= firstOfLast
+            //       && di.Date < firstOfThis
+            //    group di by new { di.Date.Year, di.Date.Month } into g
+            //    select new InitiativeMonthlyStatModel
+            //    {
+            //        YearMonth = $"{g.Key.Year}-{g.Key.Month:D2}",
+            //        TotalAmount = g.Sum(x => x.Amount)
+            //    }
+            //).ToListAsync();
+            var firstOfThis = new DateTime(now.Year, now.Month, 1);
+            var firstOfNext = firstOfThis.AddMonths(1);
+
+            var monthly = await (
+                from di in _db.FundraisingDailyIncomes
+                join fs in _db.FundraisingStats on di.FundraisingStatId equals fs.Id
+                join f in _db.Fundraisings on fs.FundraisingId equals f.Id
+                where f.InitiativeId == initiativeId
+                   && di.Date >= firstOfThis
+                   && di.Date < firstOfNext
+                group di by new { di.Date.Year, di.Date.Month } into g
+                select new InitiativeMonthlyStatModel
+                {
+                    YearMonth = $"{g.Key.Year}-{g.Key.Month:D2}",
+                    TotalAmount = g.Sum(x => x.Amount)
+                }
+            ).ToListAsync();
+
+
+            return new InitiativeOverviewResponseModel
+            {
+                TotalCollected = total,
+                Monthly = monthly
+            };
+        }
     }
 }

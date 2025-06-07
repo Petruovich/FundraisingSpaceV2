@@ -20,5 +20,7 @@ namespace Fun.Application.Fun.IServices
         Task<InitiativeResponseModel> ToResponseModelAsync(Initiative entity);
         Task EditInitiativeAsync(int id, InitiativeEditComponentModel model);
         Task<InitiativeDetailResponseModel> GetByIdWithFundraisingsAsync(int id);
+        Task<List<InitiativeStatResponseModel>> GetDailyStatsAsync(int initiativeId);
+        Task<InitiativeOverviewResponseModel> GetOverviewAsync(int initiativeId);
     }
 }
