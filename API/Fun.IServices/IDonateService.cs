@@ -12,5 +12,6 @@ namespace Fun.Application.Fun.IServices
         //Task DonateAsync(int fundraisingId, decimal amount, int userId);
         Task/*<string>*/ DonateAsync(int fundraisingId, decimal amount, int userId);
         Task<List<DonorResponseModel>> GetTopDonorsAsync(int fundraisingId);
+        Task<List<DonateResponseModel>> GetMyDonationsDetailedAsync();
     }
 }

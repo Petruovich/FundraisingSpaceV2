@@ -13,6 +13,6 @@ namespace Fun.Application.ResponseModels
         public string Description { get; set; } = default!;
         public int CategoryId { get; set; }
         public string? ImageBase64 { get; set; }
-        public List<FundraisingResponseModel> Fundraisings { get; set; } = new();
+        //public List<FundraisingResponseModel> Fundraisings { get; set; } = new();
     }
 }

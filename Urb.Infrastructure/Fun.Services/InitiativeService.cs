@@ -269,9 +269,8 @@ namespace Urb.Infrastructure.Fun.Services
 
         public async Task<InitiativeDetailResponseModel> GetByIdWithFundraisingsAsync(int id)
         {
-            var initiative = await _db.Initiatives
-                .Include(i => i.Fundraisings)
-                .FirstOrDefaultAsync(i => i.Id == id);
+            var initiative = await _db.Initiatives.FindAsync(id);
+                
 
             if (initiative == null)
                 throw new KeyNotFoundException($"Initiative #{id} not found.");
@@ -299,16 +298,16 @@ namespace Urb.Infrastructure.Fun.Services
                 }
             }
 
-            var frList = initiative.Fundraisings
-                .Select(f => new FundraisingResponseModel
-                {
-                    Id = f.Id,
-                    Title = f.Title,
-                    GoalAmount = f.GoalAmount,
-                    CreatedAt = f.CreatedAt,
-                    Deadline = f.Deadline
-                })
-                .ToList();
+            //var frList = initiative.Fundraisings
+            //    .Select(f => new FundraisingResponseModel
+            //    {
+            //        Id = f.Id,
+            //        Title = f.Title,
+            //        GoalAmount = f.GoalAmount,
+            //        CreatedAt = f.CreatedAt,
+            //        Deadline = f.Deadline
+            //    })
+            //    .ToList();
 
             return new InitiativeDetailResponseModel
             {
@@ -317,7 +316,7 @@ namespace Urb.Infrastructure.Fun.Services
                 Description = initiative.Description,
                 CategoryId = initiative.CategoryId,
                 ImageBase64 = imageBase64,
-                Fundraisings = frList
+                //Fundraisings = frList
             };
         }
     }

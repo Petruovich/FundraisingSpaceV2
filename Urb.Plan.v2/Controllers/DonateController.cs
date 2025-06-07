@@ -51,5 +51,13 @@ namespace Fun.Plan.v2.Controllers
             var result = await _donationSvc.GetTopDonorsAsync(fundraisingId);
             return Ok(result);
         }
+
+        [HttpGet("MyDonates")]
+        [Authorize]
+        public async Task<ActionResult<List<DonateResponseModel>>> GetMyDonationsDetailed()
+        {
+            var result = await _donationSvc.GetMyDonationsDetailedAsync();
+            return Ok(result);
+        }
     }
 }

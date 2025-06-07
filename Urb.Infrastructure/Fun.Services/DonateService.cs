@@ -17,15 +17,18 @@ namespace Fun.Infrastructure.Fun.Services
         private readonly ICRUDRepository<Fundraising> _repo;
         private readonly MainDataContext _db;
         private readonly IHttpContextAccessor _httpCtx;
+        private readonly IUserService _userService;
 
         public DonateService(
             ICRUDRepository<Fundraising> repo,
             MainDataContext db,
-            IHttpContextAccessor httpCtx)
+            IHttpContextAccessor httpCtx,
+            IUserService userService)
         {
             _repo = repo;
             _httpCtx = httpCtx;
             _db = db;
+            _userService = userService;
         }
         public async Task DonateAsync(int fundraisingId, decimal amount, int userId)
         {
@@ -141,6 +144,29 @@ namespace Fun.Infrastructure.Fun.Services
                 });
             }
             return result;
+        }
+        public async Task<List<DonateResponseModel>> GetMyDonationsDetailedAsync()
+        {
+            var userId = await _userService.GetMy();
+            var list = await _db.Donates
+                .Where(d => d.UserId == userId)
+                .Select(d => new DonateResponseModel
+                {
+                    Id = d.Id,
+                    Amount = d.Amount,
+                    Date = d.Date,
+
+                    FundraisingTitle = d.Fundraising.Title,
+                    FundraisingDeadline = d.Fundraising.Deadline,
+                    FundraisingGoal = d.Fundraising.GoalAmount,
+
+                    InitiativeCategoryId = d.Fundraising.Initiative.CategoryId,
+                    InitiativeTitle = d.Fundraising.Initiative.Title
+                })
+                .OrderByDescending(d => d.Date)
+                .ToListAsync();
+
+            return list;
         }
     }
 }

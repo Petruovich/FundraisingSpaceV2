@@ -2,6 +2,7 @@
 using Fun.Application.ComponentModels;
 using Fun.Application.Fun.IRepositories;
 using Fun.Application.Fun.IServices;
+using Fun.Application.ResponseModels;
 using Fun.Domain.Fun.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
@@ -100,10 +101,27 @@ namespace Fun.Infrastructure.Fun.Services
         //    return all.Where(f => ids.Contains(f.InitiativeId));
         //}
 
-        public async Task<IEnumerable<Fundraising>> GetByInitiativeAsync(int initiativeId)
+        //public async Task<IEnumerable<Fundraising>> GetByInitiativeAsync(int initiativeId)
+        //{
+        //    var all = await _repo.ListAsync();
+        //    return all.Where(f => f.InitiativeId == initiativeId);
+        //}
+        public async Task<List<FundraisingResponseTotalCollectedModel>> GetByInitiativeAsync(int initiativeId)
         {
-            var all = await _repo.ListAsync();
-            return all.Where(f => f.InitiativeId == initiativeId);
+            var list = await _ctx.Fundraisings
+                .Where(f => f.InitiativeId == initiativeId)
+                .Select(f => new FundraisingResponseTotalCollectedModel
+                {
+                    Id = f.Id,
+                    Title = f.Title,
+                    GoalAmount = f.GoalAmount,
+                    CreatedAt = f.CreatedAt,
+                    Deadline = f.Deadline,
+                    TotalCollected = f.Donates.Sum(d => d.Amount)
+                })
+                .ToListAsync();
+
+            return list;
         }
 
         public async Task<FundraisingStatisticsComponentModel> GetStatisticsAsync(int fundraisingId)

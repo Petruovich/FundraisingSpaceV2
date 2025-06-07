@@ -75,13 +75,20 @@ namespace Fun.Plan.v2.Controllers
                 }
             }
 
+        //[AllowAnonymous]
+        //[HttpGet("byInitiative/{initiativeId:int}")]
+        //public async Task<ActionResult<IEnumerable<Fundraising>>> GetByInitiative(int initiativeId)
+        //    {
+        //        var list = await _svc.GetByInitiativeAsync(initiativeId);
+        //        return Ok(list);
+        //    }
+        [HttpGet("byInitiative/{initiativeId}")]
         [AllowAnonymous]
-        [HttpGet("byInitiative/{initiativeId:int}")]
-        public async Task<ActionResult<IEnumerable<Fundraising>>> GetByInitiative(int initiativeId)
-            {
-                var list = await _svc.GetByInitiativeAsync(initiativeId);
-                return Ok(list);
-            }
+        public async Task<IActionResult> GetByInitiative(int initiativeId)
+        {
+            var result = await _svc.GetByInitiativeAsync(initiativeId);
+            return Ok(result);
+        }
 
         [HttpGet("{id}/statistics")]
         public async Task<ActionResult<FundraisingStatisticsComponentModel>> GetStatistics(int id)
